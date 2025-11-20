@@ -1,0 +1,118 @@
+<% 
+    const title = (profile && profile.name ? profile.name : 'Profil') + ' - Profil'; 
+
+    function computeGradient() {
+        if (profile && profile.backgroundGradient && String(profile.backgroundGradient).trim() !== '') {
+            return profile.backgroundGradient;
+        }
+        return 'white';
+    }
+
+  const backgroundGradient = computeGradient();
+%>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body style="background: <%= backgroundGradient %>">
+  <div class="container">
+    <div class="card" style="background-image: url('<%= profile.backgroundImage %>'); background-size: cover; background-position: center;">
+      
+      <div class="profile-header">
+        <% if (profile.image && profile.image.trim() !== '') { %>
+          <div class="profile-image-wrapper">
+            <img src="<%= profile.image %>" alt="<%= profile.name %>" class="profile-image">
+            <span class="active-indicator" aria-hidden="true" title="Actif"></span>
+          </div>
+        <% } %>
+        <h1 class="profile-name"><%= profile.name %></h1>
+      </div>
+
+      <div class="profile-content">
+        <div class="profile-links">
+          <% if (profile.lienOF && profile.lienOF.trim() !== '') { %>
+            <a href="/go/<%= profile.finalURL %>/OF" target="_blank" rel="noopener noreferrer" class="profile-link-oval" data-click-type="OF">
+              <img src="/logos/OF.png" alt="Logo OF" class="link-logo">
+              <span><%= profile.titleOF %></span>
+            </a>
+          <% } %>
+          <% if (profile.lienMYM && profile.lienMYM.trim() !== '') { %>
+            <a href="/go/<%= profile.finalURL %>/MY" target="_blank" rel="noopener noreferrer" class="profile-link-oval" data-click-type="MY">
+              <img src="/logos/MYM.png" alt="Logo MYM" class="link-logo">
+              <span><%= profile.titleMYM %></span>
+            </a>
+          <% } %>
+          <% if (profile.lienIG && profile.lienIG.trim() !== '') { %>
+            <a href="/go/<%= profile.finalURL %>/IG" target="_blank" rel="noopener noreferrer" class="profile-link-oval" data-click-type="IG">
+              <img src="/logos/IG.png" alt="Logo IG" class="link-logo">
+              <span><%= profile.titleIG %></span>
+            </a>
+          <% } %>
+          <% if (profile.lienTG && profile.lienTG.trim() !== '') { %>
+            <a href="/go/<%= profile.finalURL %>/TG" target="_blank" rel="noopener noreferrer" class="profile-link-oval" data-click-type="TG">
+              <img src="/logos/TG.png" alt="Logo TG" class="link-logo">
+              <span><%= profile.titleTG %></span>
+            </a>
+          <% } %>
+        </div>
+      </div>
+      
+      <% if (profile.countdownSeconds && profile.countdownSeconds > 0) { %>
+      <div class="profile-countdown" id="profile-countdown" data-seconds="<%= profile.countdownSeconds %>">
+        <div class="countdown-title"><%= profile.countdownTitle && profile.countdownTitle.trim() !== '' ? profile.countdownTitle : 'Temps restant' %></div>
+        <div class="countdown-time">
+          <span class="countdown-unit" id="cd-h">00</span>
+          <span class="countdown-sep">:</span>
+          <span class="countdown-unit" id="cd-m">00</span>
+          <span class="countdown-sep">:</span>
+          <span class="countdown-unit" id="cd-s">00</span>
+        </div>
+      </div>
+      <% } %>
+      
+    </div>
+  </div>
+
+  <script>
+    // Adapter --vh pour mobile
+    (function() {
+      function setVhProperty() {
+          var vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty('--vh', vh + 'px');
+      }
+      setVhProperty();
+      window.addEventListener('resize', setVhProperty);
+    })();
+    
+    (function() {
+      var el = document.getElementById('profile-countdown');
+      if (!el) return;
+      var secs = Number(el.getAttribute('data-seconds') || '0');
+      if (!Number.isFinite(secs) || secs <= 0) return;
+      var hEl = document.getElementById('cd-h');
+      var mEl = document.getElementById('cd-m');
+      var sEl = document.getElementById('cd-s');
+      function f(n) { return n < 10 ? '0' + n : '' + n; }
+      function render(s) {
+        var h = Math.floor(s / 3600);
+        var m = Math.floor((s % 3600) / 60);
+        var se = s % 60;
+        hEl.textContent = f(h);
+        mEl.textContent = f(m);
+        sEl.textContent = f(se);
+      }
+      render(secs);
+      var iv = setInterval(function() {
+        secs -= 1;
+        if (secs <= 0) { clearInterval(iv); render(0); return; }
+        render(secs);
+      }, 1000);
+    })();
+    // Dégradé du body calculé côté serveur via EJS (aucun JS public)
+  </script>
+</body>
+</html>
