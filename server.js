@@ -1,15 +1,15 @@
 //Imports
+import 'dotenv/config';
 import express from "express";
 import path from "path";
 import { fileURLToPath } from 'url';
-import dotenv from "dotenv";
 import { initializeDatabase } from './db/init.js';
 import { ModelRepository, LinkRepository, VisitRepository, ClickRepository } from './repositories/index.js';
 import { getCountryFromRequest } from './services/geo.js';
 import { computeBackgroundGradientFromImage } from './services/profileUtilities.js';
 import { validateLink, computeSignature, requireSignedOrApiKeyAndCaptcha, requireAdminApiKey } from './services/securityUtilities.js';
+import { parseVisits } from './services/adminUtilities.js';
 
-dotenv.config();
 
 // Initialise la base de données
 await initializeDatabase();
@@ -25,6 +25,7 @@ const PORT = process.env.PORT || 3000;
 // Variable globale pour activer/désactiver le captcha
 const CAPTCHA_ENABLED = process.env.CAPTCHA_ENABLED === 'true' || false;
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY;
+const ADMIN_URL_SECRET = process.env.ADMIN_URL_SECRET;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -45,9 +46,9 @@ async function startServer() {
     }
     try {
         app.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}`);
+            console.log(`Server running on http://localhost:${PORT}/${ADMIN_URL_SECRET}`);
             for (const profile of profiles) {
-                console.log(`http://localhost:${PORT}/p/${profile.tempURL}`);
+                console.log(`http://localhost:${PORT}/${profile.tempURL}`);
             }
         });
     } catch (err) {
@@ -55,21 +56,28 @@ async function startServer() {
         process.exit(1); // Quitte en cas d’erreur critique
     }
 }
-
 startServer();
 
 
-// Routes
-//Admin 
-app.get('/', async (req, res) => {
-    const allModels = await ModelRepository.list();
-    res.render('admin', { models: allModels });
-    // res.render('admin', { profiles: allProfiles });
-    // res.render('admin', { profiles: sampleProfiles });
-});
+/*             Pages accessibles            */
 
-// Route page chargement via lien temporaire (/p/:link) avec vérification du lien
-app.get('/p/:link', validateLink, async (req, res) => {
+//Admin protégé par préfixe URL depuis .env
+if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET.length === 128) {
+    app.get(`/${ADMIN_URL_SECRET}`, async (req, res) => {
+        try {
+            const models = await ModelRepository.list();
+            return res.render('admin', { models, adminPrefix: `/${ADMIN_URL_SECRET}` });
+        } catch (e) {
+            console.error('Erreur chargement admin:', e);
+            return res.status(500).render('404');
+        }
+    });
+} else {
+    console.warn('ADMIN_URL_SECRET non configuré ou longueur ≠ 128: page admin désactivée');
+}
+
+// Route page chargement via lien temporaire (/:link) avec vérification du lien
+app.get('/:link', validateLink, async (req, res) => {
     const { link } = req.params;
     const exp = Date.now() + 30_000; // 30s de validité
     let sig = 'invalid';
@@ -101,7 +109,6 @@ app.get('/profile/:finalURL', async (req, res) => {
         try {
             const countryCode = await getCountryFromRequest(req);
             await VisitRepository.create({ linkTempURL: profile.tempURL, location: countryCode });
-            console.log("Pays enregistré !");
         } catch (logErr) {
             console.warn('Visit logging failed:', logErr);
         }
@@ -204,6 +211,10 @@ app.get('/go/:finalURL/:type', async (req, res) => {
     }
 });
 
+
+
+/*             Routes accès données             */
+
 // Route pour récupérer l'URL de profil à partir d'une URL temporaire, securisée
 app.get('/api/getProfileUrl/:link', requireSignedOrApiKeyAndCaptcha, async (req, res) => {
     const { link } = req.params;
@@ -223,8 +234,8 @@ app.get('/api/getProfileUrl/:link', requireSignedOrApiKeyAndCaptcha, async (req,
     res.json({ url: finalUrl });
 });
 
-// Ajouter une URL difficile
-app.get('/api/models/:name/links', async (req, res) => {
+// Route liste des liens d'un modèle
+app.get(`/${ADMIN_URL_SECRET}/api/models/:name/links`, async (req, res) => {
     try {
         const { name } = req.params;
         if (!name || typeof name !== 'string' || name.length > 255) {
@@ -241,8 +252,51 @@ app.get('/api/models/:name/links', async (req, res) => {
     }
 });
 
+// Récupération des visites par temporalité
+app.post(`/${ADMIN_URL_SECRET}/api/visits/by-range`, async (req, res) => {
+    try {
+        // Vérifications des paramètres
+        const { tempURLs, range } = req.body;
+        if (!Array.isArray(tempURLs) || tempURLs.length === 0) {
+            return res.status(400).json({ error: 'tempURLs requis (array non vide)' });
+        }
+        const urls = Array.from(new Set(tempURLs.map(s => String(s || '').trim()).filter(s => s.length > 0 && s.length <= 255)));
+        if (urls.length === 0) {
+            return res.status(400).json({ error: 'Aucune URL valide' });
+        }
+        const r = String(range || '').trim();
+        if (!['month', 'week', '24h', '48h', '72h'].includes(r)) {
+            return res.status(400).json({ error: 'Temporalité invalide' });
+        }
+
+        // Récupération des visites
+        const byLink = {};
+        const fetchers = {
+            'month': (u) => VisitRepository.getLastMonthByDay(u),
+            'week': (u) => VisitRepository.getLastWeekByHalfDay(u),
+            '24h': (u) => VisitRepository.getLastDayByHour(u),
+            '48h': (u) => VisitRepository.getLast2DaysByHour(u),
+            '72h': (u) => VisitRepository.getLast3DaysByHour(u),
+        };
+        const fetcher = fetchers[r] || fetchers['24h'];
+        for (const u of urls) {
+            const s = await fetcher(u);
+            byLink[u] = parseVisits(s);
+        }
+        return res.json(byLink);
+        
+    } catch (err) {
+        console.error('Erreur visites par temporalité:', err);
+        return res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+
+
+/*             Routes création données             */
+
 // Créer un modèle (clé primaire = name)
-app.post('/api/models', requireAdminApiKey, async (req, res) => {
+app.post(`/${ADMIN_URL_SECRET}/api/models`, async (req, res) => {
     try {
         const { name } = req.body;
         if (!name || typeof name !== 'string') {
@@ -266,7 +320,7 @@ app.post('/api/models', requireAdminApiKey, async (req, res) => {
 });
 
 // Créer un lien
-app.post('/api/links', requireAdminApiKey, async (req, res) => {
+app.post(`/${ADMIN_URL_SECRET}/api/links`, async (req, res) => {
     try {
         const {
             tempURL,
@@ -327,4 +381,7 @@ app.post('/api/links', requireAdminApiKey, async (req, res) => {
         return res.status(500).json({ success: false, error: 'Erreur serveur', details: err.message });
     }
 });
+
+
+ 
 

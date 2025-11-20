@@ -1,10 +1,31 @@
 import { Visit } from '../db/visits.table.js';
 import sequelize from '../config/database.js';
 
-// Helpers de formatage en timezone locale
+// Formatage en timezone locale
 const pad2 = (n) => String(n).padStart(2, '0');
 const formatDateLocal = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 const formatHourLocal = (d) => `${formatDateLocal(d)} ${pad2(d.getHours())}:00:00`;
+
+// Code pays to nom français
+const countrySpecials = { XK: 'Kosovo' };
+const normalizeRegion = (c) => {
+  const s = String(c || '').trim().toUpperCase();
+  if (s === 'UK') return 'GB';
+  if (s === 'EL') return 'GR';
+  return s;
+};
+const displayFr = new Intl.DisplayNames(['fr'], { type: 'region' });
+export function toFrenchCountryName(code) {
+  const c = normalizeRegion(code);
+  if (countrySpecials[c]) return countrySpecials[c];
+  if (!/^[A-Z]{2}$/.test(c)) return 'Inconnu';
+  try {
+    const name = displayFr.of(c);
+    return (typeof name === 'string' && name !== 'région indéterminée') ? name : 'Inconnu';
+  } catch {
+    return 'Inconnu';
+  }
+}
 
 export const VisitRepository = {
   // Création d'une nouvelle visite
@@ -46,12 +67,12 @@ export const VisitRepository = {
       const byLocation = {};
       let total = 0;
       for (const r of bucketRows) {
-        const loc = String(r.location);
+        const loc = toFrenchCountryName(String(r.location));
         const c = Number(r.count);
         byLocation[loc] = (byLocation[loc] || 0) + c;
         total += c;
       }
-      series.push({ day: label, total, byLocation });
+      series.push({ date: label, total, byLocation });
     }
     return series;
   },
@@ -83,13 +104,93 @@ export const VisitRepository = {
         const byLocation = {};
         let total = 0;
         for (const r of bucketRows) {
-          const loc = String(r.location);
+          const loc = toFrenchCountryName(String(r.location));
           const c = Number(r.count);
           byLocation[loc] = (byLocation[loc] || 0) + c;
           total += c;
         }
-        series.push({ day: dayLabel, half: half === 0 ? 'AM' : 'PM', total, byLocation });
+        series.push({ date: `${dayLabel} ${half === 0 ? 'AM' : 'PM'}`, total, byLocation });
       }
+    }
+    return series;
+  },
+
+  // Retourne le nombre de visites par heure sur les 72 dernières heures
+  // Duplication pour pouvoir changer l'ogranisation si besoin (ex : regrouper par 3h)
+  async getLast3DaysByHour(tempURL) {
+    // Retourne le nombre de visites par heure sur les 72 dernières heures pour chaque location
+    const [rows] = await sequelize.query(
+      `SELECT DATE_FORMAT(createdAt, '%Y-%m-%d %H:00:00') AS hour_start,
+              location,
+              COUNT(*) AS count
+       FROM visits
+       WHERE linkTempURL = :tempURL AND createdAt >= NOW() - INTERVAL 72 HOUR
+       GROUP BY hour_start, location
+       ORDER BY hour_start ASC, location ASC`,
+      { replacements: { tempURL } }
+    );
+
+    const series = [];
+    const now = new Date();
+    const rowsLocal = rows.map(r => ({
+      hour_local: formatHourLocal(new Date(String(r.hour_start) + 'Z')),
+      location: r.location,
+      count: Number(r.count)
+    }));
+    for (let i = 71; i >= 0; i--) {
+      const d = new Date(now);
+      d.setHours(now.getHours() - i, 0, 0, 0);
+      const label = formatHourLocal(d);
+      const bucketRows = rowsLocal.filter(r => String(r.hour_local) === label);
+      const byLocation = {};
+      let total = 0;
+      for (const r of bucketRows) {
+        const loc = toFrenchCountryName(String(r.location));
+        const c = Number(r.count);
+        byLocation[loc] = (byLocation[loc] || 0) + c;
+        total += c;
+      }
+      series.push({ date: label, total, byLocation });
+    }
+    return series;
+  },
+
+  // Retourne le nombre de visites par heure sur les 48 dernières heures
+  // Duplication pour pouvoir changer l'ogranisation si besoin (ex : regrouper par 3h)
+  async getLast2DaysByHour(tempURL) {
+    // Retourne le nombre de visites par heure sur les 48 dernières heures pour chaque location
+    const [rows] = await sequelize.query(
+      `SELECT DATE_FORMAT(createdAt, '%Y-%m-%d %H:00:00') AS hour_start,
+              location,
+              COUNT(*) AS count
+       FROM visits
+       WHERE linkTempURL = :tempURL AND createdAt >= NOW() - INTERVAL 48 HOUR
+       GROUP BY hour_start, location
+       ORDER BY hour_start ASC, location ASC`,
+      { replacements: { tempURL } }
+    );
+
+    const series = [];
+    const now = new Date();
+    const rowsLocal = rows.map(r => ({
+      hour_local: formatHourLocal(new Date(String(r.hour_start) + 'Z')),
+      location: r.location,
+      count: Number(r.count)
+    }));
+    for (let i = 47; i >= 0; i--) {
+      const d = new Date(now);
+      d.setHours(now.getHours() - i, 0, 0, 0);
+      const label = formatHourLocal(d);
+      const bucketRows = rowsLocal.filter(r => String(r.hour_local) === label);
+      const byLocation = {};
+      let total = 0;
+      for (const r of bucketRows) {
+        const loc = toFrenchCountryName(String(r.location));
+        const c = Number(r.count);
+        byLocation[loc] = (byLocation[loc] || 0) + c;
+        total += c;
+      }
+      series.push({ date: label, total, byLocation });
     }
     return series;
   },
@@ -108,23 +209,27 @@ export const VisitRepository = {
       { replacements: { tempURL } }
     );
 
-    // Ajout des heures vides si besoin, regroupe par heure et location
     const series = [];
     const now = new Date();
+    const rowsLocal = rows.map(r => ({
+      hour_local: formatHourLocal(new Date(String(r.hour_start) + 'Z')),
+      location: r.location,
+      count: Number(r.count)
+    }));
     for (let i = 23; i >= 0; i--) {
       const d = new Date(now);
       d.setHours(now.getHours() - i, 0, 0, 0);
       const label = formatHourLocal(d);
-      const bucketRows = rows.filter(r => String(r.hour_start) === label);
+      const bucketRows = rowsLocal.filter(r => String(r.hour_local) === label);
       const byLocation = {};
       let total = 0;
       for (const r of bucketRows) {
-        const loc = String(r.location);
+        const loc = toFrenchCountryName(String(r.location));
         const c = Number(r.count);
         byLocation[loc] = (byLocation[loc] || 0) + c;
         total += c;
       }
-      series.push({ hour: label, total, byLocation });
+      series.push({ date: label, total, byLocation });
     }
     return series;
   },

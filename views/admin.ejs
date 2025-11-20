@@ -27,11 +27,11 @@
           <div class="controls">
             <label for="rangeSelect">Temporalité</label>
             <select id="rangeSelect">
-              <option value="day">24h</option>
-              <option value="day">48h</option>
-              <option value="day">72h</option>
+              <option value="24h" selected>24h</option>
+              <option value="48h">48h</option>
+              <option value="72h">72h</option>
               <option value="week">Une semaine</option>
-              <option value="month" selected>Un mois</option>
+              <option value="month">Un mois</option>
             </select>
             <button id="createLinkBtn" class="btn btn-primary">Nouveau lien</button>
           </div>
@@ -65,7 +65,7 @@
             </thead>
             <tbody id="linksTableBody"></tbody>
           </table>
-          <canvas id="linksChart" width="800" height="300"></canvas>
+          <canvas id="linksChart" style="display:block;margin:16px auto;width:100%;max-width:1000px;height:100%;max-height:500px;"></canvas>
         </section>
 
         <section class="block">
@@ -80,7 +80,7 @@
             </thead>
             <tbody id="countriesTableBody"></tbody>
           </table>
-          <canvas id="countriesChart" width="800" height="300"></canvas>
+          <canvas id="countriesChart" style="display:block;margin:16px auto;width:100%;max-width:500px;height:100%;max-height:500px;"></canvas>
         </section>
 
         <section class="block">
@@ -95,12 +95,13 @@
             </thead>
             <tbody id="conversionsTableBody"></tbody>
           </table>
-          <canvas id="conversionsChart" width="800" height="300"></canvas>
+          <canvas id="conversionsChart" style="display:block;margin:16px auto;width:100%;max-width:1000px;height:100%;max-height:500px;"></canvas>
         </section>
 
       </main>
     </div>
 
+    <script>window.ADMIN_PREFIX = '<%= adminPrefix %>';</script>
     <script src="/js/admin.js"></script>
   </body>
   </html>
