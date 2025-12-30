@@ -33,7 +33,7 @@ export const Link = sequelize.define('Link', {
       key: 'name',
     },
     onUpdate: 'CASCADE', //Mise à jour du modèle affecte les liens
-    onDelete: 'RESTRICT', //Impossible de supprimer un modèle si il y a des liens associés
+    onDelete: 'CASCADE', //Impossible de supprimer un modèle si il y a des liens associés
   },
   finalURL: {
     type: DataTypes.STRING(128),

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Page admin</title>
     <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
@@ -15,7 +18,10 @@
         <h2>Modèles</h2>
         <ul id="modelsList" class="models-list">
           <% models.forEach(function(m) { %>
-            <li class="models-item" data-name="<%= m.name %>"><%= m.name %></li>
+            <li class="models-item" data-name="<%= m.name %>">
+              <span class="models-name"><%= m.name %></span>
+              <button class="icon-btn delete-model-btn" aria-label="Supprimer <%= m.name %>" title="Supprimer" data-name="<%= m.name %>">🗑️</button>
+            </li>
           <% }); %>
         </ul>
         <button id="createModelBtn" class="btn btn-primary">Créer un nouveau modèle</button>
@@ -26,13 +32,14 @@
         <header class="topbar">
           <div class="controls">
             <label for="rangeSelect">Temporalité</label>
-            <select id="rangeSelect">
-              <option value="24h" selected>24h</option>
-              <option value="48h">48h</option>
-              <option value="72h">72h</option>
-              <option value="week">Une semaine</option>
-              <option value="month">Un mois</option>
-            </select>
+            <select id="rangeSelect" class="sr-only"></select>
+            <div id="rangeSelector" class="select-range" aria-label="Sélecteur de temporalité">
+              <button type="button" id="rangeSelectBtn" aria-haspopup="listbox" aria-expanded="false">
+                <span id="rangeSelectLabel">24h</span>
+                <span class="chevron" aria-hidden="true">▾</span>
+              </button>
+              <ul id="rangeSelectList" role="listbox" tabindex="-1"></ul>
+            </div>
             <button id="createLinkBtn" class="btn btn-primary">Nouveau lien</button>
           </div>
           <div id="activeModelName" class="active-model">Sélectionnez un modèle</div>
@@ -40,7 +47,13 @@
 
         <section class="block">
           <h3>Liste des liens</h3>
-          <table class="table" aria-label="Liste des liens">
+          <table id="linksListTable" class="table" aria-label="Liste des liens">
+            <colgroup>
+              <col style="width:25%">
+              <col style="width:25%">
+              <col style="width:25%">
+              <col style="width:25%">
+            </colgroup>
             <thead>
               <tr>
                 <th>Sélection</th>
@@ -55,7 +68,12 @@
 
         <section class="block">
           <h3>Visites par liens</h3>
-          <table class="table" aria-label="Visites par lien">
+          <table id="linksTable" class="table" aria-label="Visites par lien">
+            <colgroup>
+              <col style="width:33.3333%">
+              <col style="width:33.3333%">
+              <col style="width:33.3333%">
+            </colgroup>
             <thead>
               <tr>
                 <th>Lien</th>
@@ -65,12 +83,37 @@
             </thead>
             <tbody id="linksTableBody"></tbody>
           </table>
-          <canvas id="linksChart" style="display:block;margin:16px auto;width:100%;max-width:1000px;height:100%;max-height:500px;"></canvas>
+          <div class="visits-data">
+            <div class="chart-links">
+              <canvas id="linksChart"></canvas>
+            </div>
+            <div class="top-visits">
+              <h3>Top visites</h3>
+              <table id="topVisitsTable" class="table" aria-label="Top visites">
+                <colgroup>
+                  <col style="width:50%">
+                  <col style="width:50%">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Lien</th>
+                    <th>Visites</th>
+                  </tr>
+                </thead>
+                <tbody id="topVisitsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
         </section>
 
         <section class="block">
           <h3>Visites par pays</h3>
-          <table class="table" aria-label="Visites par pays">
+          <table id="countriesTable" class="table" aria-label="Visites par pays">
+            <colgroup>
+              <col style="width:33.3333%">
+              <col style="width:33.3333%">
+              <col style="width:33.3333%">
+            </colgroup>
             <thead>
               <tr>
                 <th>Pays</th>
@@ -80,12 +123,35 @@
             </thead>
             <tbody id="countriesTableBody"></tbody>
           </table>
-          <canvas id="countriesChart" style="display:block;margin:16px auto;width:100%;max-width:500px;height:100%;max-height:500px;"></canvas>
+          <div class="two-pie-graphs-container">
+            <div class="double-pie">
+              <h2>Pays pour les liens sélectionnés</h2>
+              <canvas id="countriesChart"></canvas>
+            </div>
+
+            <div class="double-pie">
+              <h2>Pays pour un lien spécifique</h2>
+              <canvas id="countriesChartSpecific"></canvas>
+              <select id="countrySelect" class="sr-only"></select>
+              <div id="countrySelector" class="select-range" aria-label="Sélecteur de pays">
+                <button type="button" id="countrySelectBtn" aria-haspopup="listbox" aria-expanded="false">
+                  <span id="countrySelectLabel">Tous les pays</span>
+                  <span class="chevron" aria-hidden="true">▾</span>
+                </button>
+                <ul id="countrySelectList" role="listbox" tabindex="-1"></ul>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <section class="block">
+        <!-- <section class="block">
           <h3>Conversions</h3>
-          <table class="table" aria-label="Visites par pays">
+          <table id="conversionsTable" class="table" aria-label="Visites par pays">
+            <colgroup>
+              <col style="width:33.3333%">
+              <col style="width:33.3333%">
+              <col style="width:33.3333%">
+            </colgroup>
             <thead>
               <tr>
                 <th>Type</th>
@@ -96,12 +162,181 @@
             <tbody id="conversionsTableBody"></tbody>
           </table>
           <canvas id="conversionsChart" style="display:block;margin:16px auto;width:100%;max-width:1000px;height:100%;max-height:500px;"></canvas>
-        </section>
+        </section> -->
+     
+        <div id="createModelModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="createModelTitle" hidden>
+          <div class="modal-backdrop"></div>
+          <div class="modal-panel">
+            <button id="createModelClose" class="modal-close" aria-label="Fermer">×</button>
+            <h3 id="createModelTitle">Nom du nouveau modèle</h3>
+            <input id="createModelInput" type="text" placeholder="Ex: MonModèle" class="input" />
+            <div id="createModelStatus" class="modal-status"></div>
+            <div class="actions">
+              <button id="createModelOk" class="btn btn-primary">OK</button>
+            </div>
+          </div>
+        </div>
 
+        <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" hidden>
+          <div class="modal-backdrop"></div>
+          <div class="modal-panel">
+            <button id="confirmClose" class="modal-close" aria-label="Fermer">×</button>
+            <h3 id="confirmTitle">Confirmer</h3>
+            <div class="confirm-content" id="confirmContent"></div>
+            <div class="actions">
+              <button id="confirmYes" class="btn btn-primary">Oui</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="createProfileModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="createProfileTitle" hidden>
+          <div class="modal-backdrop"></div>
+          <div class="modal-panel modal-panel-large">
+            <button id="createProfileClose" class="modal-close" aria-label="Fermer">×</button>
+            <h3 id="createProfileTitle">Créer un profil</h3>
+            <div class="profile-modal-content">
+              <div class="profile-preview-pane">
+                <iframe id="profilePreview" title="Prévisualisation du profil"></iframe>
+              </div>
+              <div class="profile-config-pane">
+                <div class="actions">
+                  <select id="duplicateLinkSelect" class="sr-only"></select>
+                  <div id="duplicateLinkSelector" class="select-range" aria-label="Dupliquer un lien">
+                    <button type="button" id="duplicateLinkSelectBtn" aria-haspopup="listbox" aria-expanded="false">
+                      <span id="duplicateLinkSelectLabel">— Choisir un lien —</span>
+                      <span class="chevron" aria-hidden="true">▾</span>
+                    </button>
+                    <ul id="duplicateLinkSelectList" role="listbox" tabindex="-1"></ul>
+                  </div>
+                  <button id="duplicateLinkBtn" class="btn btn-secondary">Dupliquer</button>
+                  <button id="createProfileSave" class="btn btn-primary">Enregistrer</button>
+                </div>
+                
+                <div class="block">
+                  <div class="config-row">
+                    <div class="config-group">
+                      <label for="profileTempURL">URL du profil</label>
+                      <input id="profileTempURL" type="text" class="input" placeholder="Ex: MiniCamsInsta" />
+                    </div>
+                    <div class="config-group">
+                      <label for="profileDisplayName">Nom</label>
+                      <textarea id="profileDisplayName" type="text" class="input" placeholder="Ex: MiniCams" rows="1" style="resize: none; overflow: hidden;"></textarea>
+                    </div>
+                  </div>
+                </div>  
+                  
+                <div class="block">
+                  <div class="config-row">
+                    <div class="config-group">
+                      <label for="profileLinkOF">Lien OF</label>
+                      <input id="profileLinkOF" type="text" class="input" placeholder="https://onlyfans.com/..." />
+                    </div>
+                    <div class="config-group">
+                      <label for="profileTitleOF">Titre OF</label>
+                      <input id="profileTitleOF" type="text" class="input" placeholder="OnlyFans 🔥" />
+                    </div>
+                  </div>
+                  <div class="config-row">
+                    <div class="config-group">
+                      <label for="profileLinkMYM">Lien MYM</label>
+                      <input id="profileLinkMYM" type="text" class="input" placeholder="https://mym.fans/..." />
+                    </div>
+                    <div class="config-group">
+                      <label for="profileTitleMYM">Titre MYM</label>
+                      <input id="profileTitleMYM" type="text" class="input" placeholder="MYM 👅" />
+                    </div>
+                  </div>
+                  <div class="config-row">
+                    <div class="config-group">
+                      <label for="profileLinkIG">Lien IG</label>
+                      <input id="profileLinkIG" type="text" class="input" placeholder="https://instagram.com/..." />
+                    </div>
+                    <div class="config-group">
+                      <label for="profileTitleIG">Titre IG</label>
+                      <input id="profileTitleIG" type="text" class="input" placeholder="Instagram 💖" />
+                    </div>
+                  </div>
+                  <div class="config-row">
+                    <div class="config-group">
+                      <label for="profileLinkTG">Lien TG</label>
+                      <input id="profileLinkTG" type="text" class="input" placeholder="https://t.me/..." />
+                    </div>
+                    <div class="config-group">
+                      <label for="profileTitleTG">Titre TG</label>
+                      <input id="profileTitleTG" type="text" class="input" placeholder="Telegram 💬" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="block">
+                  <div class="config-row">
+                    <div class="config-group">
+                      <label for="profileCountdownHours">Heures de compte à rebours</label>
+                      <input id="profileCountdownHours" type="number" class="input" min="0" step="1" placeholder="0" />
+                    </div>
+                    <div class="config-group">
+                      <label for="profileCountdownTitle">Titre du compte à rebours</label>
+                      <input id="profileCountdownTitle" type="text" class="input" placeholder="Temps restant" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="block">
+                  <div class="config-row">
+                    <div class="config-group">
+                      <label for="profilePictureSelect">Photo de profil</label>
+                      <input id="profilePicture" type="hidden" />
+                      <select id="profilePictureSelect" class="sr-only"></select>
+                      <div class="select-line">
+                        <div id="profilePictureSelector" class="select-range" aria-label="Sélecteur de photo">
+                          <button type="button" id="profilePictureSelectBtn" aria-haspopup="listbox" aria-expanded="false">
+                            <span id="profilePictureSelectLabel">— Aucune —</span>
+                            <span class="chevron" aria-hidden="true">▾</span>
+                          </button>
+                          <ul id="profilePictureSelectList" role="listbox" tabindex="-1"></ul>
+                        </div>
+                        <button id="delProfilePicture" class="btn btn-secondary">Supprimer la photo</button>
+                      </div>
+                    </div>
+
+                    <div class="config-group">
+                      <label for="profileBackgroundSelect">Arrière-plan</label>
+                      <input id="profileBackground" type="hidden" />
+                      <select id="profileBackgroundSelect" class="sr-only"></select>
+                      <div class="select-line">
+                        <div id="profileBackgroundSelector" class="select-range" aria-label="Sélecteur de fond">
+                          <button type="button" id="profileBackgroundSelectBtn" aria-haspopup="listbox" aria-expanded="false">
+                            <span id="profileBackgroundSelectLabel">— Aucune —</span>
+                            <span class="chevron" aria-hidden="true">▾</span>
+                          </button>
+                          <ul id="profileBackgroundSelectList" role="listbox" tabindex="-1"></ul>
+                        </div>
+                        <button id="delProfileBackground" class="btn btn-secondary">Supprimer la photo</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="uploader-drop" id="uploaderDrop">
+                    Glissez-déposez des images ici, ou
+                    <label class="uploader-browse" for="uploaderInput">cliquez pour sélectionner</label>
+                    <input id="uploaderInput" class="sr-only" type="file" accept="image/jpeg,image/png,image/gif" multiple />
+                  </div>
+                  <div class="uploader-options">
+                    <fieldset class="uploader-target">
+                      <legend>Importer vers</legend>
+                      <label><input type="radio" name="uploaderTarget" id="uploaderTargetPhotos" value="photos" checked> Photos</label>
+                      <label><input type="radio" name="uploaderTarget" id="uploaderTargetFonds" value="fonds"> Fonds d’écran</label>
+                    </fieldset>
+                  </div>
+                </div>
+            </div>
+            <div id="createProfileStatus" class="modal-status"></div>
+          </div>
+        </div>
       </main>
     </div>
 
     <script>window.ADMIN_PREFIX = '<%= adminPrefix %>';</script>
-    <script src="/js/admin.js"></script>
-  </body>
+    <script type="module" src="/js/admin.js"></script>
+    </body>
   </html>
