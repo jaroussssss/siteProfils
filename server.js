@@ -286,6 +286,11 @@ app.get('/api/getProfileUrl/:link', requireSignedOrApiKeyAndCaptcha, async (req,
     // Récupère le host original (même derrière un proxy/tunnel)
     const host = req.get('x-forwarded-host') || req.get('host');
     const protocol = req.get('x-forwarded-proto') || req.protocol;
+    if (protocol) {
+        protocol = protocol.split(',')[0].trim();
+        protocol = protocol === 'https' ? 'https' : 'http';
+    }
+    
     // Récupération du suffixe final depuis la BDD 
     let finalUrl;
     try {
