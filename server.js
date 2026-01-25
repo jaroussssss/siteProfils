@@ -7,15 +7,12 @@ import { initializeDatabase } from './db/init.js';
 import { ModelRepository, LinkRepository, VisitRepository, ClickRepository } from './repositories/index.js';
 import { getCountryFromRequest } from './services/geo.js';
 import { computeBackgroundGradientFromImage } from './services/profileUtilities.js';
-import { validateLink, computeSignature, requireSignedOrApiKeyAndCaptcha, requireAdminApiKey } from './services/securityUtilities.js';
+import { validateLink, computeSignature, requireSignedOrApiKeyAndCaptcha, requireAdminApiKey } from 
+'./services/securityUtilities.js';
 import { parseVisits } from './services/adminUtilities.js';
 import multer from 'multer';
 import sharp from 'sharp';
 import fs from 'fs/promises';
-
-
-// Initialise la base de données
-await initializeDatabase();
 
 // Variables nécessaires pour __dirname en ES Module
 const __filename = fileURLToPath(import.meta.url);
@@ -23,7 +20,17 @@ const __dirname = path.dirname(__filename);
 
 // Configuration de l'application
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+// CORRECTION 1 : Le port DOIT être 'passenger' sur PlanetHoster
+// On priorise 'passenger' si on détecte qu'on n'est pas en local dev
+let PORT = 'passenger';
+if (process.env.NODE_ENV === 'development' && process.env.PORT && process.env.PORT !== 'passenger') {
+    PORT = process.env.PORT; // Garde le port numérique seulement en dev local
+}
+// Pour être sûr sur PlanetHoster :
+if (!process.env.LOCAL_DEV) {
+    PORT = 'passenger';
+}
 
 // Variable globale pour activer/désactiver le captcha
 const CAPTCHA_ENABLED = process.env.CAPTCHA_ENABLED === 'true' || false;
@@ -41,24 +48,37 @@ app.set('trust proxy', true);
 
 //Initialisation
 async function startServer() {
+    console.log("🚀 Démarrage de l'initialisation...");
+    
+    // CORRECTION 2 : Déplacer l'init DB à l'intérieur pour ne pas bloquer le chargement du module
+    try {
+        await initializeDatabase();
+        console.log("✅ Base de données initialisée.");
+    } catch (e) {
+        console.error("❌ Erreur critique DB:", e);
+        // Sur PlanetHoster, il vaut mieux ne pas exit(1) tout de suite pour voir les logs
+    }
+
     let profiles = [];
     try {
         profiles = await LinkRepository.findAll();
     } catch (e) {
-        console.warn('⚠️ Impossible de récupérer les profils au démarrage (DB non disponible ?). Démarrage du serveur sans liste:', e?.message || e);
+        console.warn('⚠️ Impossible de récupérer les profils au démarrage:', e?.message || e);
     }
+
     try {
+        // CORRECTION 3 : Le listen explicite sur 'passenger'
         app.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}/${ADMIN_URL_SECRET}`);
-            for (const profile of profiles) {
-                console.log(`http://localhost:${PORT}/${profile.tempURL}`);
-            }
+            console.log(`Server running on port: ${PORT}`);
+            // Note: Sur PlanetHoster l'URL interne n'est pas localhost:passenger, c'est géré par Apache
+            console.log(`Application accessible publiquement.`);
         });
     } catch (err) {
-        console.error("Erreur lors de l'initialisation :", err);
-        process.exit(1); // Quitte en cas d’erreur critique
+        console.error("❌ Erreur lors du app.listen :", err);
     }
 }
+
+// Lancement
 startServer();
 
 
