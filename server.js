@@ -257,9 +257,9 @@ app.get('/go/:finalURL/:type', async (req, res) => {
                 break;
         }
 
-        if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
-            return res.status(404).render('404');
-        }
+        // if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
+        //     return res.status(404).render('404');
+        // }
 
         // Logger le clic
         try {
