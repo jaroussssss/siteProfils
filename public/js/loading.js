@@ -4,7 +4,7 @@
   const isInstagram = /Instagram/.test(navigator.userAgent);
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  function fetchWithTimeout(url, options={}, timeout = 5000) {
+  function fetchWithTimeout(url, options={}, timeout = 15000) {
     return Promise.race([
       fetch(url, options),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
@@ -77,7 +77,10 @@
             .catch(err => {
               console.error(err);
               const el = messageEl();
-              if (el) { el.textContent = 'Impossible de charger le profil. Veuillez réessayer.'; el.classList.add('error'); }
+              if (el) { 
+                el.textContent = err.message || 'Impossible de charger le profil.'; 
+                el.classList.add('error'); 
+              }
             });
         });
       });
@@ -93,7 +96,10 @@
         .catch(err => {
           console.error(err);
           const el = messageEl();
-          if (el) { el.textContent = 'Impossible de charger le profil. Veuillez réessayer.'; el.classList.add('error'); }
+          if (el) { 
+            el.textContent = err.message || 'Impossible de charger le profil.'; 
+            el.classList.add('error'); 
+          }
         });
     }
   };
