@@ -285,13 +285,12 @@ app.get('/api/getProfileUrl/:link', requireSignedOrApiKeyAndCaptcha, async (req,
     const { link } = req.params;
     // Récupère le host original (même derrière un proxy/tunnel)
     const host = req.get('x-forwarded-host') || req.get('host');
-    const protocol = req.get('x-forwarded-proto') || req.protocol;
     // Récupération du suffixe final depuis la BDD 
     let finalUrl;
     try {
         const linkEntity = await LinkRepository.findByTempURL(link);
         const finalSuffix = linkEntity.finalURL;
-        finalUrl = `${protocol}://${host}/profile/${finalSuffix}`;
+        finalUrl = `https://${host}/profile/${finalSuffix}`;
     } catch (err) {
         console.error('Erreur récupération lien:', err);
         return res.status(500).json({ error: 'Erreur serveur' });
