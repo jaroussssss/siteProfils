@@ -228,12 +228,12 @@ app.get('/go/:finalURL/:type', async (req, res) => {
     try {
         const { finalURL, type } = req.params;
         const allowed = ['OF', 'MY', 'IG', 'TG'];
-        if (!finalURL || typeof finalURL !== 'string' || finalURL.length > 128) {
-            return res.status(400).render('404');
-        }
-        if (!type || typeof type !== 'string' || !allowed.includes(type)) {
-            return res.status(400).render('404');
-        }
+        // if (!finalURL || typeof finalURL !== 'string' || finalURL.length > 128) {
+        //     return res.status(400).render('404');
+        // }
+        // if (!type || typeof type !== 'string' || !allowed.includes(type)) {
+        //     return res.status(400).render('404');
+        // }
 
         const link = await LinkRepository.findByFinalURL(finalURL);
         if (!link) {
