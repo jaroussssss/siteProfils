@@ -269,6 +269,9 @@ app.get('/go/:finalURL/:type', async (req, res) => {
         }
 
         // Rediriger vers l’URL cible
+        if (targetUrl && !/^https?:\/\//i.test(targetUrl)) {
+            targetUrl = 'https://' + targetUrl;
+        }
         return res.redirect(targetUrl);
     } catch (err) {
         console.error('Erreur redirection clic:', err);
