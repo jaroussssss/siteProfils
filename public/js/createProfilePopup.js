@@ -59,6 +59,10 @@ export function setupCreateProfilePopup() {
   let mode = 'create';
   let editingTempURL = null;
 
+  function urlWithoutProtocol(url) {
+    return String(url || '').replace(/^https?:\/\//i, '');
+  }
+
   // Récupère le modèle actif sélectionné
   function getActiveModel() {
     const el = document.getElementById('activeModelName');
@@ -72,13 +76,13 @@ export function setupCreateProfilePopup() {
     params.set('displayName', String(fields.displayName.value || ''));
     params.set('picture', String(fields.picture.value || ''));
     params.set('background', String(fields.background.value || ''));
-    params.set('linkOF', String(fields.linkOF.value || ''));
+    params.set('linkOF', urlWithoutProtocol(fields.linkOF.value));
     params.set('titleOF', String(fields.titleOF.value || ''));
-    params.set('linkMYM', String(fields.linkMYM.value || ''));
+    params.set('linkMYM', urlWithoutProtocol(fields.linkMYM.value));
     params.set('titleMYM', String(fields.titleMYM.value || ''));
-    params.set('linkIG', String(fields.linkIG.value || ''));
+    params.set('linkIG', urlWithoutProtocol(fields.linkIG.value));
     params.set('titleIG', String(fields.titleIG.value || ''));
-    params.set('linkTG', String(fields.linkTG.value || ''));
+    params.set('linkTG', urlWithoutProtocol(fields.linkTG.value));
     params.set('titleTG', String(fields.titleTG.value || ''));
     const h = Number(fields.countdownHours.value || '0');
     params.set('countdownHours', Number.isFinite(h) && h > 0 ? String(Math.floor(h)) : '0');
@@ -128,10 +132,10 @@ export function setupCreateProfilePopup() {
         displayName: String(fields.displayName.value || '').trim() || null,
         picture: String(fields.picture.value || '').trim(),
         background: String(fields.background.value || '').trim(),
-        linkOF: String(fields.linkOF.value || '').trim() || null,
-        linkMYM: String(fields.linkMYM.value || '').trim() || null,
-        linkIG: String(fields.linkIG.value || '').trim() || null,
-        linkTG: String(fields.linkTG.value || '').trim() || null,
+        linkOF: urlWithoutProtocol(fields.linkOF.value),
+        linkMYM: urlWithoutProtocol(fields.linkMYM.value),
+        linkIG: urlWithoutProtocol(fields.linkIG.value),
+        linkTG: urlWithoutProtocol(fields.linkTG.value),
         titleOF: String(fields.titleOF.value || '').trim() || null,
         titleMYM: String(fields.titleMYM.value || '').trim() || null,
         titleIG: String(fields.titleIG.value || '').trim() || null,
@@ -189,10 +193,10 @@ export function setupCreateProfilePopup() {
       displayName: String(fields.displayName.value || '').trim() || null,
       picture: String(fields.picture.value || '').trim(),
       background: String(fields.background.value || '').trim(),
-      linkOF: String(fields.linkOF.value || '').trim() || null,
-      linkMYM: String(fields.linkMYM.value || '').trim() || null,
-      linkIG: String(fields.linkIG.value || '').trim() || null,
-      linkTG: String(fields.linkTG.value || '').trim() || null,
+      linkOF: urlWithoutProtocol(fields.linkOF.value),
+      linkMYM: urlWithoutProtocol(fields.linkMYM.value),
+      linkIG: urlWithoutProtocol(fields.linkIG.value),
+      linkTG: urlWithoutProtocol(fields.linkTG.value),
       titleOF: String(fields.titleOF.value || '').trim() || null,
       titleMYM: String(fields.titleMYM.value || '').trim() || null,
       titleIG: String(fields.titleIG.value || '').trim() || null,
