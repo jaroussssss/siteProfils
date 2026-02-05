@@ -27,6 +27,7 @@ let PORT = 'passenger';
 if (process.env.NODE_ENV === 'development' && process.env.PORT && process.env.PORT !== 'passenger') {
     PORT = process.env.PORT; // Garde le port numérique seulement en dev local
 }
+
 // Pour être sûr sur PlanetHoster :
 if (!process.env.LOCAL_DEV) {
     PORT = 'passenger';
@@ -168,16 +169,7 @@ app.get('/profile/:finalURL', async (req, res) => {
         const profile = await LinkRepository.findByFinalURL(finalURL);
         if (!profile) {
             return res.status(404).render('404');
-        }
-
-        // Enregistrer la visite avec le pays
-        try {
-            const countryCode = await getCountryFromRequest(req);
-            await VisitRepository.create({ linkTempURL: profile.tempURL, location: countryCode });
-        } catch (logErr) {
-            console.warn('Visit logging failed:', logErr);
-        }
-      
+        }      
 
         const renderProfile = {
             name: profile.displayName || profile.modelName,
@@ -294,6 +286,15 @@ app.get('/api/getProfileUrl/:link', requireSignedOrApiKeyAndCaptcha, async (req,
         const linkEntity = await LinkRepository.findByTempURL(link);
         const finalSuffix = linkEntity.finalURL;
         finalUrl = `https://${host}/profile/${finalSuffix}`;
+
+         // Enregistrer la visite avec le pays
+        try {
+            const countryCode = await getCountryFromRequest(req);
+            await VisitRepository.create({ linkTempURL: link, location: countryCode });
+        } catch (logErr) {
+            console.warn('Visit logging failed:', logErr);
+        }
+
     } catch (err) {
         console.error('Erreur récupération lien:', err);
         return res.status(500).json({ error: 'Erreur serveur' });
