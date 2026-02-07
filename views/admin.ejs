@@ -135,7 +135,7 @@
               <select id="countrySelect" class="sr-only"></select>
               <div id="countrySelector" class="select-range" aria-label="Sélecteur de pays">
                 <button type="button" id="countrySelectBtn" aria-haspopup="listbox" aria-expanded="false">
-                  <span id="countrySelectLabel">Tous les pays</span>
+                  <span id="countrySelectLabel"></span>
                   <span class="chevron" aria-hidden="true">▾</span>
                 </button>
                 <ul id="countrySelectList" role="listbox" tabindex="-1"></ul>
@@ -144,9 +144,9 @@
           </div>
         </section>
 
-        <!-- <section class="block">
-          <h3>Conversions</h3>
-          <table id="conversionsTable" class="table" aria-label="Visites par pays">
+        <section class="block">
+          <h3>Visites par clics</h3>
+          <table id="clicksTable" class="table" aria-label="Visites par clics">
             <colgroup>
               <col style="width:33.3333%">
               <col style="width:33.3333%">
@@ -155,14 +155,32 @@
             <thead>
               <tr>
                 <th>Type</th>
-                <th>Clicks</th>
+                <th>Click</th>
                 <th>Pourcentage</th>
               </tr>
             </thead>
-            <tbody id="conversionsTableBody"></tbody>
+            <tbody id="clicksTableBody"></tbody>
           </table>
-          <canvas id="conversionsChart" style="display:block;margin:16px auto;width:100%;max-width:1000px;height:100%;max-height:500px;"></canvas>
-        </section> -->
+          <div class="two-pie-graphs-container">
+            <div class="double-pie">
+              <h2>Clicks pour les liens sélectionnés</h2>
+              <canvas id="clicksChart"></canvas>
+            </div>
+
+            <div class="double-pie">
+              <h2>Clicks pour un lien spécifique</h2>
+              <canvas id="clicksChartSpecific"></canvas>
+              <select id="clickSelect" class="sr-only"></select>
+              <div id="clickSelector" class="select-range" aria-label="Sélecteur de clics">
+                <button type="button" id="clickSelectBtn" aria-haspopup="listbox" aria-expanded="false">
+                  <span id="clickSelectLabel"></span>
+                  <span class="chevron" aria-hidden="true">▾</span>
+                </button>
+                <ul id="clickSelectList" role="listbox" tabindex="-1"></ul>
+              </div>
+            </div>
+          </div>
+        </section>
      
         <div id="createModelModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="createModelTitle" hidden>
           <div class="modal-backdrop"></div>
