@@ -1,5 +1,6 @@
 import { getLinksByModel, deleteLink } from './api.js';
 import { loadVisitsList, displayVisits } from './visits.js';
+import { loadClicksList, displayClicks } from './clicks.js';
 import { setupConfirmPopup } from './confirmPopup.js';
 import { updateSelector } from './selector.js';
 
@@ -24,11 +25,17 @@ export async function loadLinksList(currentModelName) {
       const tdMod = document.createElement('td');
       const tdSupp = document.createElement('td');
       const cb = document.createElement('input');
+
       cb.type = 'checkbox';
       cb.checked = true;
       cb.dataset.tempUrl = l.tempURL;
-      cb.addEventListener('change', () => { displayVisits(); });
+      cb.dataset.finalUrl = l.finalURL;
+      cb.addEventListener('change', () => { 
+        displayVisits(); 
+        displayClicks();
+      });
       tdSel.appendChild(cb);
+
       const a = document.createElement('a');
       const origin = window.location.origin;
       a.href = `${origin}/${encodeURIComponent(l.tempURL)}`;
@@ -36,6 +43,7 @@ export async function loadLinksList(currentModelName) {
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
       tdUrl.appendChild(a);
+
       const editBtn = document.createElement('button');
       editBtn.className = 'btn btn-secondary';
       editBtn.textContent = 'Modifier le lien';
@@ -44,6 +52,7 @@ export async function loadLinksList(currentModelName) {
         document.dispatchEvent(ev);
       });
       tdMod.appendChild(editBtn);
+
       const delBtn = document.createElement('button');
       delBtn.className = 'btn btn-danger';
       delBtn.style.marginLeft = '8px';
@@ -75,6 +84,7 @@ export async function loadLinksList(currentModelName) {
         });
       });
       tdSupp.appendChild(delBtn);
+
       tr.appendChild(tdSel);
       tr.appendChild(tdUrl);
       tr.appendChild(tdMod);
@@ -83,6 +93,7 @@ export async function loadLinksList(currentModelName) {
     }
 
     await loadVisitsList();
+    await loadClicksList();
     
     updateSelector({
       hiddenID: 'countrySelect',

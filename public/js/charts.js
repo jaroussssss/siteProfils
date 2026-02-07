@@ -45,6 +45,32 @@ export function renderCountriesChart(canvas, labels, values) {
   });
 }
 
+export function renderClicksChart(canvas, labels, values) {
+  if (window._clickChart) { window._clickChart.destroy(); }
+  const pieColors = ['#2e86de','#e74c3c','#27ae60','#8e44ad','#f1c40f','#16a085','#d35400','#c0392b','#9b59b6','#1abc9c','#7f8c8d','#2980b9','#e67e22','#bdc3c7'];
+  window._clickChart = new Chart(canvas.getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: labels.map((_, i) => pieColors[i % pieColors.length]),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { left: 24, right: 24, top: 24, bottom: 12 } },
+      plugins: {
+        legend: { display: true, position: 'bottom' },
+        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed.toFixed(1)}%` } }
+      }
+    }
+  });
+}
+
+
 export function renderCountriesChartSpecific(canvas, labels, values) {
   if (window._countriesChartSpecific) { window._countriesChartSpecific.destroy(); }
   const pieColors = ['#2e86de','#e74c3c','#27ae60','#8e44ad','#f1c40f','#16a085','#d35400','#c0392b','#9b59b6','#1abc9c','#7f8c8d','#2980b9','#e67e22','#bdc3c7'];
