@@ -2,6 +2,7 @@ import { initRangeSelect, initSelector } from './selector.js';
 import { initUploader } from './uploader.js';
 import { loadLinksList } from './links.js';
 import { loadVisitsList } from './visits.js';
+import { loadClicksList } from './clicks.js';
 import { setupCreateModelPopup } from './createModelPopup.js';
 import { setupCreateProfilePopup } from './createProfilePopup.js';
 import { setupDeleteModel } from './deleteModel.js';
@@ -36,7 +37,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadLinksList(currentModelName);
   }
   attachEvents();
-  initRangeSelect(() => { loadVisitsList(); });
+  initRangeSelect(() => { loadVisitsList(); loadClicksList(); });
   initSelector({
     hiddenId: 'countrySelect',
     buttonId: 'countrySelectBtn',

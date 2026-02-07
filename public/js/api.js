@@ -18,6 +18,18 @@ export function getVisitsByRange(tempURLs, range) {
   });
 }
 
+export function getClicksByRange(finalURLs, range) {
+  const prefix = window.ADMIN_PREFIX || '';
+  return fetch(`${prefix}/api/clicks/by-range`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ finalURLs, range })
+  }).then(r => {
+    if (!r.ok) throw new Error('API clicks failed');
+    return r.json();
+  });
+}
+
 export function uploadImage(formData) {
   const prefix = window.ADMIN_PREFIX || '';
   return fetch(`${prefix}/api/upload-image`, { method: 'POST', body: formData });

@@ -155,8 +155,10 @@ canvas { background: #0b1220; border: 1px solid var(--border); border-radius: 8p
   --select-width: 180px; --select-height: 35px; --select-margin: 0;}
 #countriesChartSpecific { position: relative; flex: 1; min-height: 0; width: 100%; }
 
-
-
+#clicksChart { position: relative; flex: 1; min-height: 0; width: 100%; }
+#clickSelector { position: absolute; top: 60px; left: 10px; 
+  --select-width: 180px; --select-height: 35px; --select-margin: 0;}
+#clicksChartSpecific { position: relative; flex: 1; min-height: 0; width: 100%; }
 
 
 /* Uploader */
