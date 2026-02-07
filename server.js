@@ -312,6 +312,7 @@ app.get(`/${ADMIN_URL_SECRET}/api/models/:name/links`, async (req, res) => {
         const links = await LinkRepository.listByModelName(name);
         const data = links.map(l => ({
             tempURL: l.tempURL,
+            finalURL: l.finalURL,
         }));
         return res.json({ links: data });
     } catch (err) {
@@ -617,6 +618,56 @@ app.post(`/${ADMIN_URL_SECRET}/api/visits/by-range`, async (req, res) => {
         
     } catch (err) {
         console.error('Erreur visites par temporalité:', err);
+        return res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// Récupération des clicks par temporalité (admin)
+app.post(`/${ADMIN_URL_SECRET}/api/clicks/by-range`, async (req, res) => {
+    try {
+        // Vérifications des paramètres
+        const { finalURLs, range } = req.body;
+
+        if (!Array.isArray(finalURLs) || finalURLs.length === 0) {
+            return res.status(400).json({ error: 'finalURLs requis (array non vide)' });
+        }
+        
+        const urls = Array.from(new Set(finalURLs.map(s => String(s || '').trim()).filter(s => s.length === 128)));
+        if (urls.length === 0) {
+            return res.status(400).json({ error: 'Aucune URL valide' });
+        }
+
+        const r = String(range || '').trim();
+        if (!['month', 'week', '24h', '48h', '72h'].includes(r)) {
+            return res.status(400).json({ error: 'Temporalité invalide' });
+        }
+        
+        // Récupération des clicks
+        const byLink = {};
+        const types = ['OF', 'MY', 'IG', 'TG'];
+        const fetchers = {
+            'month': (u, type) => ClickRepository.getLastMonthByDay(u, type),
+            'week': (u, type) => ClickRepository.getLastWeek(u, type),
+            '24h': (u, type) => ClickRepository.getLastDayByHour(u, type),
+            '48h': (u, type) => ClickRepository.getLast2DaysByHour(u, type),
+            '72h': (u, type) => ClickRepository.getLast3DaysByHour(u, type),
+        };
+        const fetcher = fetchers[r] || fetchers['24h'];
+
+        for (const u of urls) {
+            let byType = {};
+            let total = 0;
+            for (const t of types) {
+                byType[t] = await fetcher(u, t);
+                total += byType[t] || 0;
+            }
+            byType['Total'] = total;
+            byLink[u] = byType;
+        }
+        return res.json(byLink);
+        
+    } catch (err) {
+        console.error('Erreur clicks par temporalité:', err);
         return res.status(500).json({ error: 'Erreur serveur' });
     }
 });

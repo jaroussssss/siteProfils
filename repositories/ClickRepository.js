@@ -24,82 +24,62 @@ export const ClickRepository = {
 
   // Retourne le nombre de clics par jour sur les 30 derniers jours pour un type de click
   async getLastMonthByDay(finalURL, clickType) {
-    // Requête SQL: retourne un tableau d'objets avec la date et le nombre de clics
+    // Requête SQL: retourne le nombre total de clics
     const [rows] = await sequelize.query(
-      `SELECT DATE(createdAt) AS bucket, COUNT(*) AS count
+      `SELECT COUNT(*) AS count
        FROM clicks
-       WHERE linkFinalURL = :finalURL AND clickType = :clickType AND createdAt >= NOW() - INTERVAL 30 DAY
-       GROUP BY DATE(createdAt)
-       ORDER BY bucket ASC`,
+       WHERE linkFinalURL = :finalURL AND type = :clickType AND createdAt >= NOW() - INTERVAL 30 DAY`,
       { replacements: { finalURL, clickType } }
     );
-
-    // Ajout des jours vides si besoin
-    const series = [];
-    const today = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const label = formatDateLocal(d);
-      const row = rows.find(r => String(r.bucket) === label);
-      series.push({ day: label, count: row ? Number(row.count) : 0 });
-    }
-    return series;
+    return rows[0] ? Number(rows[0].count) : 0;
   },
 
   // Retourne le nombre de clics par demi-journée sur les 7 derniers jours pour un type de click
-  async getLastWeekByHalfDay(finalURL, clickType) {
-    // Requête SQL: retourne un tableau d'objets avec la date, la demi-journée et le nombre de clics
+  async getLastWeek(finalURL, clickType) {
+    // Requête SQL: retourne le nombre total de clics
     const [rows] = await sequelize.query(
-      `SELECT DATE(createdAt) AS day,
-              FLOOR(HOUR(createdAt)/12) AS half,
-              COUNT(*) AS count
+      `SELECT COUNT(*) AS count
        FROM clicks
-       WHERE linkFinalURL = :finalURL AND clickType = :clickType AND createdAt >= NOW() - INTERVAL 7 DAY
-       GROUP BY day, half
-       ORDER BY day ASC, half ASC`,
+       WHERE linkFinalURL = :finalURL AND type = :clickType AND createdAt >= NOW() - INTERVAL 7 DAY`,
       { replacements: { finalURL, clickType } }
     );
-
-    // Ajout des demi-journées vides si besoin
-    const series = [];
-    const now = new Date();
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(now.getDate() - i);
-      const dayLabel = formatDateLocal(d);
-      for (let half = 0; half <= 1; half++) {
-        const row = rows.find(r => String(r.day) === dayLabel && Number(r.half) === half);
-        series.push({ day: dayLabel, half: half === 0 ? 'AM' : 'PM', count: row ? Number(row.count) : 0 });
-      }
-    }
-    return series;
+    return rows[0] ? Number(rows[0].count) : 0;
   },
 
-  // Retourne le nombre de clics par heure sur les 24 dernières heures pour un type de click
-  async aggregateLastDayByHour(finalURL, clickType) {
-    // Requête SQL: retourne un tableau d'objets avec l'heure et le nombre de clics
+  // Retourne le nombre de clics par heure sur les 72 dernières heures pour un type de click
+  async getLast3DaysByHour(finalURL, clickType) {
+    // Requête SQL: retourne le nombre total de clics
     const [rows] = await sequelize.query(
-      `SELECT DATE_FORMAT(createdAt, '%Y-%m-%d %H:00:00') AS hour_start,
-              COUNT(*) AS count
+      `SELECT COUNT(*) AS count
        FROM clicks
-       WHERE linkFinalURL = :finalURL AND clickType = :clickType AND createdAt >= NOW() - INTERVAL 24 HOUR
-       GROUP BY hour_start
-       ORDER BY hour_start ASC`,
+       WHERE linkFinalURL = :finalURL AND type = :clickType AND createdAt >= NOW() - INTERVAL 72 HOUR`,
       { replacements: { finalURL, clickType } }
     );
+    return rows[0] ? Number(rows[0].count) : 0;
+  },
 
-    // Ajout des heures vides si besoin
-    const series = [];
-    const now = new Date();
-    for (let i = 23; i >= 0; i--) {
-      const d = new Date(now);
-      d.setHours(now.getHours() - i, 0, 0, 0);
-      const label = formatHourLocal(d);
-      const row = rows.find(r => String(r.hour_start) === label);
-      series.push({ hour: label, count: row ? Number(row.count) : 0 });
-    }
-    return series;
+   // Retourne le nombre de clics par heure sur les 48 dernières heures pour un type de click
+  async getLast2DaysByHour(finalURL, clickType) {
+    // Requête SQL: retourne le nombre total de clics
+    const [rows] = await sequelize.query(
+      `SELECT COUNT(*) AS count
+       FROM clicks
+       WHERE linkFinalURL = :finalURL AND type = :clickType AND createdAt >= NOW() - INTERVAL 48 HOUR`,
+      { replacements: { finalURL, clickType } }
+    );
+    return rows[0] ? Number(rows[0].count) : 0;
+  }, 
+  
+  // Retourne le nombre de clics par heure sur les 24 dernières heures pour un type de click
+  async getLastDayByHour(finalURL, clickType) {
+    // Requête SQL: retourne le nombre total de clics
+    const [rows] = await sequelize.query(
+      `SELECT COUNT(*) AS count
+       FROM clicks
+       WHERE linkFinalURL = :finalURL AND type = :clickType AND createdAt >= NOW() - INTERVAL 24 HOUR`,
+      { replacements: { finalURL, clickType } }
+    );
+    return rows[0] ? Number(rows[0].count) : 0;
   },
 };
 
