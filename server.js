@@ -49,33 +49,25 @@ app.set('trust proxy', true);
 
 //Initialisation
 async function startServer() {
-    console.log("🚀 Démarrage de l'initialisation...");
     
-    // CORRECTION 2 : Déplacer l'init DB à l'intérieur pour ne pas bloquer le chargement du module
     try {
         await initializeDatabase();
-        console.log("✅ Base de données initialisée.");
     } catch (e) {
         console.error("❌ Erreur critique DB:", e);
-        // Sur PlanetHoster, il vaut mieux ne pas exit(1) tout de suite pour voir les logs
     }
 
     let profiles = [];
     try {
         profiles = await LinkRepository.findAll();
     } catch (e) {
-        console.warn('⚠️ Impossible de récupérer les profils au démarrage:', e?.message || e);
+        console.warn('Impossible de récupérer les profils au démarrage:', e?.message || e);
     }
 
     try {
-        // CORRECTION 3 : Le listen explicite sur 'passenger'
         app.listen(PORT, () => {
             console.log(`Server running on port: ${PORT}`);
-            // Note: Sur PlanetHoster l'URL interne n'est pas localhost:passenger, c'est géré par Apache
-            console.log(`Application accessible publiquement.`);
         });
     } catch (err) {
-        console.error("❌ Erreur lors du app.listen :", err);
     }
 }
 
@@ -98,46 +90,46 @@ if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET
         }
     });
     
-    app.get(`/${ADMIN_URL_SECRET}/preview/profile`, async (req, res) => {
-        try {
-            const q = req.query || {};
-            const renderProfile = {
-                name: q.displayName || q.modelName || '',
-                image: (() => {
-                    const p = q.picture;
-                    if (!p || !String(p).trim()) return '';
-                    return String(p).startsWith('/') ? String(p) : `/${String(p)}`;
-                })(),
-                backgroundImage: (() => {
-                    const b = q.background;
-                    if (!b || !String(b).trim()) return '';
-                    return String(b).startsWith('/') ? String(b) : `/${String(b)}`;
-                })(),
-                lienOF: q.linkOF || '',
-                lienMYM: q.linkMYM || '',
-                lienIG: q.linkIG || '',
-                lienTG: q.linkTG || '',
-                titleOF: q.titleOF || q.linkOF || '',
-                titleMYM: q.titleMYM || q.linkMYM || '',
-                titleIG: q.titleIG || q.linkIG || '',
-                titleTG: q.titleTG || q.linkTG || '',
-                finalURL: 'preview',
-                countdownSeconds: Math.round((Number(q.countdownHours) || 0) * 3600),
-                countdownTitle: q.countdownTitle || '',
-            };
-            try {
-                const bgUrl = renderProfile.backgroundImage;
-                const absPath = bgUrl ? path.join(__dirname, 'public', bgUrl.replace(/^\//, '')) : '';
-                const gradient = await computeBackgroundGradientFromImage(absPath);
-                renderProfile.backgroundGradient = gradient || 'white';
-            } catch (e) {
-                renderProfile.backgroundGradient = 'white';
-            }
-            return res.render('profilePreview', { profile: renderProfile });
-        } catch (err) {
-            return res.status(500).render('404');
-        }
-    });
+//     app.get(`/${ADMIN_URL_SECRET}/preview/profile`, async (req, res) => {
+//         try {
+//             const q = req.query || {};
+//             const renderProfile = {
+//                 name: q.displayName || q.modelName || '',
+//                 image: (() => {
+//                     const p = q.picture;
+//                     if (!p || !String(p).trim()) return '';
+//                     return String(p).startsWith('/') ? String(p) : `/${String(p)}`;
+//                 })(),
+//                 backgroundImage: (() => {
+//                     const b = q.background;
+//                     if (!b || !String(b).trim()) return '';
+//                     return String(b).startsWith('/') ? String(b) : `/${String(b)}`;
+//                 })(),
+//                 lienOF: q.linkOF || '',
+//                 lienMYM: q.linkMYM || '',
+//                 lienIG: q.linkIG || '',
+//                 lienTG: q.linkTG || '',
+//                 titleOF: q.titleOF || q.linkOF || '',
+//                 titleMYM: q.titleMYM || q.linkMYM || '',
+//                 titleIG: q.titleIG || q.linkIG || '',
+//                 titleTG: q.titleTG || q.linkTG || '',
+//                 finalURL: 'preview',
+//                 countdownSeconds: Math.round((Number(q.countdownHours) || 0) * 3600),
+//                 countdownTitle: q.countdownTitle || '',
+//             };
+//             try {
+//                 const bgUrl = renderProfile.backgroundImage;
+//                 const absPath = bgUrl ? path.join(__dirname, 'public', bgUrl.replace(/^\//, '')) : '';
+//                 const gradient = await computeBackgroundGradientFromImage(absPath);
+//                 renderProfile.backgroundGradient = gradient || 'white';
+//             } catch (e) {
+//                 renderProfile.backgroundGradient = 'white';
+//             }
+//             return res.render('profilePreview', { profile: renderProfile });
+//         } catch (err) {
+//             return res.status(500).render('404');
+//         }
+//     });
 } else {
     console.warn('ADMIN_URL_SECRET non configuré ou longueur ≠ 128: page admin désactivée');
 }
@@ -643,8 +635,6 @@ app.post(`/${ADMIN_URL_SECRET}/api/clicks/by-range`, async (req, res) => {
         }
         
         // Récupération des clicks
-        const byLink = {};
-        const types = ['OF', 'MY', 'IG', 'TG'];
         const fetchers = {
             'month': (u, type) => ClickRepository.getLastMonthByDay(u, type),
             'week': (u, type) => ClickRepository.getLastWeek(u, type),
@@ -654,6 +644,8 @@ app.post(`/${ADMIN_URL_SECRET}/api/clicks/by-range`, async (req, res) => {
         };
         const fetcher = fetchers[r] || fetchers['24h'];
 
+        const byLink = {};
+        const types = ['OF', 'MY', 'IG', 'TG'];
         for (const u of urls) {
             let byType = {};
             let total = 0;

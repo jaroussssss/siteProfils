@@ -1,4 +1,5 @@
 import { getClicksByRange } from './api.js';
+import { renderClickChartSpecific } from './charts.js';
 import { renderClicksChart} from './charts.js';
 
 // Charge la liste de toutes les visites de la temporailité et appelle les fonctions d'affichage
@@ -89,39 +90,29 @@ export function displayClicks() {
 }
 
 
-// // Affichage des visites par pays pour un lien spécifique
-// export function displaySpecificCountryVisits(tempURL) {
-//   try {
-//     const data = window.LAST_VISITS_DATA;
-//     if (!data || !tempURL) return;
+// Affichage des clicks pour un lien spécifique
+export function displaySpecificClicks(tempURL) {
+  try {
+    const data = window.LAST_CLICKS_DATA;
+    if (!data || !tempURL) return;
+    console.log(tempURL);
+    const finalUrl = Array.from(document.querySelectorAll('#linksListBody input[type="checkbox"]'))
+                    .filter(cb => cb.dataset.tempUrl === tempURL)
+                    .map(cb => cb.dataset.finalUrl)
+                    .at(0); 
+    console.log(finalUrl);               
+    const ctCanvas = document.getElementById('clicksChartSpecific');
+    if (!ctCanvas) return;
 
-//     const info = data[tempURL];
-//     const ctCanvas = document.getElementById('countriesChartSpecific');
-    
-//     if (!ctCanvas) return;
-    
-//     if (!info || !info.totalCountries) {
-//       if (window._countriesChartSpecific) { 
-//         window._countriesChartSpecific.destroy(); 
-//         window._countriesChartSpecific = null; 
-//       }
-//       return;
-//     }
 
-//     const totals = new Map();
-//     for (const [name, val] of Object.entries(info.totalCountries)) {
-//       const c = Number(val) || 0;
-//       totals.set(name, c);
-//     }
+    const type = ['OnlyFans', 'MYM', 'Instagram', 'Telegram'];
+    const entries = [[type[0], data[finalUrl]['OF']], [type[1], data[finalUrl]['MY']], 
+                    [type[2], data[finalUrl]['IG']], [type[3], data[finalUrl]['TG']]];
+    const labelsCountries = entries.map(([name]) => name);
+    const valuesCountriesPct = entries.map(([, v]) => data[finalUrl]['Total'] > 0 ? (v / data[finalUrl]['Total']) * 100 : 0);
     
-//     const entries = Array.from(totals.entries()).sort((a, b) => b[1] - a[1]);
-//     const totalAll = entries.reduce((acc, [, v]) => acc + v, 0);
-
-//     const labelsCountries = entries.map(([name]) => name);
-//     const valuesCountriesPct = entries.map(([, v]) => totalAll > 0 ? (v / totalAll) * 100 : 0);
-    
-//     renderCountriesChartSpecific(ctCanvas, labelsCountries, valuesCountriesPct);
-//   } catch (e) {
-//     console.error(e);
-//   }
-// }
+    renderClickChartSpecific(ctCanvas, labelsCountries, valuesCountriesPct);
+  } catch (e) {
+    console.error(e);
+  }
+}

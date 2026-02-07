@@ -1,12 +1,12 @@
 import { initRangeSelect, initSelector } from './selector.js';
 import { initUploader } from './uploader.js';
 import { loadLinksList } from './links.js';
-import { loadVisitsList } from './visits.js';
-import { loadClicksList } from './clicks.js';
+import { loadVisitsList, displaySpecificCountryVisits } from './visits.js';
+import { loadClicksList, displaySpecificClicks } from './clicks.js';
 import { setupCreateModelPopup } from './createModelPopup.js';
 import { setupCreateProfilePopup } from './createProfilePopup.js';
 import { setupDeleteModel } from './deleteModel.js';
-import { displaySpecificCountryVisits } from './visits.js';
+import {  } from './visits.js';
  
 
 let currentModelName = null;
@@ -45,6 +45,14 @@ window.addEventListener('DOMContentLoaded', () => {
     labelId: 'countrySelectLabel',
     items: [],
     onChange: (val) => { displaySpecificCountryVisits(val); }
+  });
+  initSelector({
+    hiddenId: 'clickSelect',
+    buttonId: 'clickSelectBtn',
+    listId: 'clickSelectList',
+    labelId: 'clickSelectLabel',
+    items: [],
+    onChange: (val) => { displaySpecificClicks(val); }
   });
   initUploader();
   setupCreateModelPopup();

@@ -102,6 +102,13 @@ export async function loadLinksList(currentModelName) {
       items: links.map(l => ({ value: l.tempURL, text: l.tempURL })),
       preserveValue: true
     });
+    updateSelector({
+      hiddenID: 'clickSelect',
+      listID: 'clickSelectList',
+      labelID: 'clickSelectLabel',
+      items: links.map(l => ({ value: l.tempURL, text: l.tempURL })),
+      preserveValue: true
+    });
   } catch (e) {
     console.error(e);
   }
