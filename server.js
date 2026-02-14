@@ -90,46 +90,46 @@ if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET
         }
     });
     
-//     app.get(`/${ADMIN_URL_SECRET}/preview/profile`, async (req, res) => {
-//         try {
-//             const q = req.query || {};
-//             const renderProfile = {
-//                 name: q.displayName || q.modelName || '',
-//                 image: (() => {
-//                     const p = q.picture;
-//                     if (!p || !String(p).trim()) return '';
-//                     return String(p).startsWith('/') ? String(p) : `/${String(p)}`;
-//                 })(),
-//                 backgroundImage: (() => {
-//                     const b = q.background;
-//                     if (!b || !String(b).trim()) return '';
-//                     return String(b).startsWith('/') ? String(b) : `/${String(b)}`;
-//                 })(),
-//                 lienOF: q.linkOF || '',
-//                 lienMYM: q.linkMYM || '',
-//                 lienIG: q.linkIG || '',
-//                 lienTG: q.linkTG || '',
-//                 titleOF: q.titleOF || q.linkOF || '',
-//                 titleMYM: q.titleMYM || q.linkMYM || '',
-//                 titleIG: q.titleIG || q.linkIG || '',
-//                 titleTG: q.titleTG || q.linkTG || '',
-//                 finalURL: 'preview',
-//                 countdownSeconds: Math.round((Number(q.countdownHours) || 0) * 3600),
-//                 countdownTitle: q.countdownTitle || '',
-//             };
-//             try {
-//                 const bgUrl = renderProfile.backgroundImage;
-//                 const absPath = bgUrl ? path.join(__dirname, 'public', bgUrl.replace(/^\//, '')) : '';
-//                 const gradient = await computeBackgroundGradientFromImage(absPath);
-//                 renderProfile.backgroundGradient = gradient || 'white';
-//             } catch (e) {
-//                 renderProfile.backgroundGradient = 'white';
-//             }
-//             return res.render('profilePreview', { profile: renderProfile });
-//         } catch (err) {
-//             return res.status(500).render('404');
-//         }
-//     });
+    app.get(`/${ADMIN_URL_SECRET}/preview/profile`, async (req, res) => {
+        try {
+            const q = req.query || {};
+            const renderProfile = {
+                name: q.displayName || q.modelName || '',
+                image: (() => {
+                    const p = q.picture;
+                    if (!p || !String(p).trim()) return '';
+                    return String(p).startsWith('/') ? String(p) : `/${String(p)}`;
+                })(),
+                backgroundImage: (() => {
+                    const b = q.background;
+                    if (!b || !String(b).trim()) return '';
+                    return String(b).startsWith('/') ? String(b) : `/${String(b)}`;
+                })(),
+                lienOF: q.linkOF || '',
+                lienMYM: q.linkMYM || '',
+                lienIG: q.linkIG || '',
+                lienTG: q.linkTG || '',
+                titleOF: q.titleOF || q.linkOF || '',
+                titleMYM: q.titleMYM || q.linkMYM || '',
+                titleIG: q.titleIG || q.linkIG || '',
+                titleTG: q.titleTG || q.linkTG || '',
+                finalURL: 'preview',
+                countdownSeconds: Math.round((Number(q.countdownHours) || 0) * 3600),
+                countdownTitle: q.countdownTitle || '',
+            };
+            try {
+                const bgUrl = renderProfile.backgroundImage;
+                const absPath = bgUrl ? path.join(__dirname, 'public', bgUrl.replace(/^\//, '')) : '';
+                const gradient = await computeBackgroundGradientFromImage(absPath);
+                renderProfile.backgroundGradient = gradient || 'white';
+            } catch (e) {
+                renderProfile.backgroundGradient = 'white';
+            }
+            return res.render('profilePreview', { profile: renderProfile });
+        } catch (err) {
+            return res.status(500).render('404');
+        }
+    });
 } else {
     console.warn('ADMIN_URL_SECRET non configuré ou longueur ≠ 128: page admin désactivée');
 }
