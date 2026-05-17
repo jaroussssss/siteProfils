@@ -12,6 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
     <div class="app-container">
       <!-- Sidebar -->
       <aside class="sidebar">
@@ -28,7 +29,7 @@
       </aside>
 
       <!-- Main content -->
-      <main class="main">
+      <main class="main" id="main-content">
         <header class="topbar">
           <div class="controls">
             <label for="rangeSelect">Temporalité</label>
@@ -42,7 +43,7 @@
             </div>
             <button id="createLinkBtn" class="btn btn-primary">Nouveau lien</button>
           </div>
-          <div id="activeModelName" class="active-model">Sélectionnez un modèle</div>
+          <div id="activeModelName" class="active-model" title="Sélectionnez un modèle dans le panneau gauche, puis créez un lien">Sélectionnez un modèle</div>
         </header>
 
         <section class="block">
@@ -56,10 +57,10 @@
             </colgroup>
             <thead>
               <tr>
-                <th>Sélection</th>
-                <th>URL publique</th>
-                <th>Modifier</th>
-                <th>Supprimer</th>
+                <th scope="col">Sélection</th>
+                <th scope="col">URL publique</th>
+                <th scope="col">Modifier</th>
+                <th scope="col">Supprimer</th>
               </tr>
             </thead>
             <tbody id="linksListBody"></tbody>
@@ -76,9 +77,9 @@
             </colgroup>
             <thead>
               <tr>
-                <th>Lien</th>
-                <th>Visites</th>
-                <th>Pourcentage</th>
+                <th scope="col">Lien</th>
+                <th scope="col">Visites</th>
+                <th scope="col">Pourcentage</th>
               </tr>
             </thead>
             <tbody id="linksTableBody"></tbody>
@@ -96,8 +97,8 @@
                 </colgroup>
                 <thead>
                   <tr>
-                    <th>Lien</th>
-                    <th>Visites</th>
+                    <th scope="col">Lien</th>
+                    <th scope="col">Visites</th>
                   </tr>
                 </thead>
                 <tbody id="topVisitsTableBody"></tbody>
@@ -116,9 +117,9 @@
             </colgroup>
             <thead>
               <tr>
-                <th>Pays</th>
-                <th>Visites</th>
-                <th>Pourcentage</th>
+                <th scope="col">Pays</th>
+                <th scope="col">Visites</th>
+                <th scope="col">Pourcentage</th>
               </tr>
             </thead>
             <tbody id="countriesTableBody"></tbody>
@@ -135,7 +136,7 @@
               <select id="countrySelect" class="sr-only"></select>
               <div id="countrySelector" class="select-range" aria-label="Sélecteur de pays">
                 <button type="button" id="countrySelectBtn" aria-haspopup="listbox" aria-expanded="false">
-                  <span id="countrySelectLabel"></span>
+                  <span id="countrySelectLabel">Tous les pays</span>
                   <span class="chevron" aria-hidden="true">▾</span>
                 </button>
                 <ul id="countrySelectList" role="listbox" tabindex="-1"></ul>
@@ -154,9 +155,9 @@
             </colgroup>
             <thead>
               <tr>
-                <th>Type</th>
-                <th>Click</th>
-                <th>Pourcentage</th>
+                <th scope="col">Type</th>
+                <th scope="col">Click</th>
+                <th scope="col">Pourcentage</th>
               </tr>
             </thead>
             <tbody id="clicksTableBody"></tbody>
@@ -290,7 +291,7 @@
                   <div class="config-row">
                     <div class="config-group">
                       <label for="profileCountdownHours">Heures de compte à rebours</label>
-                      <input id="profileCountdownHours" type="number" class="input" min="0" step="1" placeholder="0" />
+                      <input id="profileCountdownHours" type="number" class="input" min="0" max="8760" step="1" placeholder="0" />
                     </div>
                     <div class="config-group">
                       <label for="profileCountdownTitle">Titre du compte à rebours</label>

@@ -1,19 +1,24 @@
 import { getVisitsByRange } from './api.js';
 import { renderLinksChart, renderCountriesChart, renderCountriesChartSpecific } from './charts.js';
 
+let visitsRequestId = 0;
+
 // Charge la liste de toutes les visites de la temporailité et appelle les fonctions d'affichage
 export async function loadVisitsList() {
+  const myId = ++visitsRequestId;
   const links = Array.from(document.querySelectorAll('#linksListBody input[type="checkbox"]'))
     .map(cb => cb.dataset.tempUrl)
     .filter(Boolean);
-  
+
   try {
     if (links.length !== 0){
       const rangeSel = document.getElementById('rangeSelect');
       const range = (rangeSel && rangeSel.value) ? rangeSel.value : 'day';
       const data = await getVisitsByRange(links, range);
+      if (myId !== visitsRequestId) return;
       window.LAST_VISITS_DATA = data;
     } else {
+      if (myId !== visitsRequestId) return;
       window.LAST_VISITS_DATA = {};
     }
     displayVisits();
@@ -41,11 +46,11 @@ export function displayVisits() {
     // Reset si vide
     if (checked.length === 0) {
       const tbody = document.getElementById('linksTableBody');
-      if (tbody) tbody.innerHTML = '';
+      if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:16px;color:var(--muted)">Aucun lien sélectionné</td></tr>';
       const canvas = document.getElementById('linksChart');
       if (canvas && window._linksChart) { window._linksChart.destroy(); window._linksChart = null; }
       const ctBody = document.getElementById('countriesTableBody');
-      if (ctBody) ctBody.innerHTML = '';
+      if (ctBody) ctBody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:16px;color:var(--muted)">Aucun lien sélectionné</td></tr>';
       const ctCanvas = document.getElementById('countriesChart');
       if (ctCanvas && window._countriesChart) { window._countriesChart.destroy(); window._countriesChart = null; }
       return;

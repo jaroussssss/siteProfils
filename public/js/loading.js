@@ -4,11 +4,12 @@
   const isInstagram = /Instagram/.test(navigator.userAgent);
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  function fetchWithTimeout(url, options={}, timeout = 15000) {
-    return Promise.race([
-      fetch(url, options),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
-    ]);
+  function fetchWithTimeout(url, options={}, timeout=15000) {
+    let timeoutId;
+    const timeoutP = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('La connexion prend trop de temps. Vérifiez votre connexion internet.')), timeout);
+    });
+    return Promise.race([fetch(url, options), timeoutP]).finally(() => clearTimeout(timeoutId));
   }
 
   function redirectExternal(url) {
@@ -77,9 +78,14 @@
             .catch(err => {
               console.error(err);
               const el = messageEl();
-              if (el) { 
-                el.textContent = err.message || 'Impossible de charger le profil.'; 
-                el.classList.add('error'); 
+              if (el) {
+                const msg = err.message || '';
+                if (msg.includes('404') || msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('expiré')) {
+                  el.textContent = 'Ce lien est invalide ou a expiré. Demandez un nouveau lien.';
+                } else {
+                  el.textContent = msg || 'Impossible de charger le profil.';
+                }
+                el.classList.add('error');
               }
             });
         });
@@ -88,7 +94,12 @@
       // Signature seule
       fetchWithTimeout(baseUrl)
         .then(async response => {
-          if (!response.ok) throw new Error(`Erreur API: ${response.status}`);
+          if (!response.ok) {
+            if (response.status === 404 || response.status === 403) {
+              throw new Error('Ce lien est invalide ou a expiré. Demandez un nouveau lien.');
+            }
+            throw new Error(`Erreur API: ${response.status}`);
+          }
           const data = await response.json();
           if (data.error) throw new Error(data.error);
           redirectExternal(data.url);
@@ -96,9 +107,9 @@
         .catch(err => {
           console.error(err);
           const el = messageEl();
-          if (el) { 
-            el.textContent = err.message || 'Impossible de charger le profil.'; 
-            el.classList.add('error'); 
+          if (el) {
+            el.textContent = err.message || 'Impossible de charger le profil.';
+            el.classList.add('error');
           }
         });
     }

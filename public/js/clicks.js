@@ -2,19 +2,24 @@ import { getClicksByRange } from './api.js';
 import { renderClickChartSpecific } from './charts.js';
 import { renderClicksChart} from './charts.js';
 
+let clicksRequestId = 0;
+
 // Charge la liste de toutes les visites de la temporailité et appelle les fonctions d'affichage
 export async function loadClicksList() {
+  const myId = ++clicksRequestId;
   const links = Array.from(document.querySelectorAll('#linksListBody input[type="checkbox"]'))
     .map(cb => cb.dataset.finalUrl)
     .filter(Boolean);
-  
+
   try {
     if (links.length !== 0){
       const rangeSel = document.getElementById('rangeSelect');
       const range = (rangeSel && rangeSel.value) ? rangeSel.value : 'day';
       const data = await getClicksByRange(links, range);
+      if (myId !== clicksRequestId) return;
       window.LAST_CLICKS_DATA = data;
     } else {
+      if (myId !== clicksRequestId) return;
       window.LAST_CLICKS_DATA = {};
     }
     displayClicks();
@@ -52,10 +57,11 @@ export function displayClicks() {
     if (clickBody) clickBody.innerHTML = '';
     let totals = [0, 0, 0, 0];
     for (const u of checked) {
-      totals[0] += data[u]['OF'];
-      totals[1] += data[u]['MY'];
-      totals[2] += data[u]['IG'];
-      totals[3] += data[u]['TG'];
+      if (!data[u]) continue;
+      totals[0] += data[u]['OF'] || 0;
+      totals[1] += data[u]['MY'] || 0;
+      totals[2] += data[u]['IG'] || 0;
+      totals[3] += data[u]['TG'] || 0;
     }
     const totalAll = totals[0] + totals[1] + totals[2] + totals[3];
 
@@ -104,9 +110,10 @@ export function displaySpecificClicks(tempURL) {
     const ctCanvas = document.getElementById('clicksChartSpecific');
     if (!ctCanvas) return;
 
+    if (!finalUrl || !data[finalUrl]) { return; }
 
     const type = ['OnlyFans', 'MYM', 'Instagram', 'Telegram'];
-    const entries = [[type[0], data[finalUrl]['OF']], [type[1], data[finalUrl]['MY']], 
+    const entries = [[type[0], data[finalUrl]['OF']], [type[1], data[finalUrl]['MY']],
                     [type[2], data[finalUrl]['IG']], [type[3], data[finalUrl]['TG']]];
     const labelsCountries = entries.map(([name]) => name);
     const valuesCountriesPct = entries.map(([, v]) => data[finalUrl]['Total'] > 0 ? (v / data[finalUrl]['Total']) * 100 : 0);

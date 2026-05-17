@@ -122,10 +122,12 @@ export function setupCreateProfilePopup() {
     }).catch(() => ({ tempURL, modelName }));
   }
 
-  // Création du payload de création avec validation des champs 
+  // Création du payload de création avec validation des champs
   function payloadAsync() {
     return validateAsync().then(base => {
       if (!base) return null;
+      const h = Number(fields.countdownHours.value || '0');
+      if (h > 8760) { status.textContent = 'Maximum 8760 heures (1 an)'; return null; }
       return {
         tempURL: base.tempURL,
         modelName: base.modelName,
@@ -189,6 +191,8 @@ export function setupCreateProfilePopup() {
       return acc + (v ? 1 : 0);
     }, 0);
     if (linksCount < 1 || linksCount > 3) { status.textContent = 'Entre 1 et 3 liens requis'; return Promise.resolve(null); }
+    const h = Number(fields.countdownHours.value || '0');
+    if (h > 8760) { status.textContent = 'Maximum 8760 heures (1 an)'; return Promise.resolve(null); }
     return Promise.resolve({
       displayName: String(fields.displayName.value || '').trim() || null,
       picture: String(fields.picture.value || '').trim(),
@@ -384,28 +388,31 @@ export function setupCreateProfilePopup() {
     if (mode === 'create') {
       const p = await payloadAsync();
       if (!p) return;
-      status.textContent = 'Enregistrement en cours…';
+      status.textContent = ‘Enregistrement en cours…’;
       saveBtn.disabled = true;
+      saveBtn.classList.add(‘is-loading’);
       try {
         const res = await createLink(p);
         if (!res.ok) {
           const j = await res.json().catch(() => ({}));
-          status.textContent = j?.error || 'Échec de l’enregistrement';
+          status.textContent = j?.error || ‘Échec de l’enregistrement’;
           return;
         }
         close();
         const m = getActiveModel();
         if (m) loadLinksList(m);
       } catch (e) {
-        status.textContent = 'Erreur réseau';
+        status.textContent = ‘Erreur réseau’;
       } finally {
         saveBtn.disabled = false;
+        saveBtn.classList.remove(‘is-loading’);
       }
     } else {
       const patch = await patchAsync();
       if (!patch) return;
       status.textContent = 'Mise à jour en cours…';
       saveBtn.disabled = true;
+      saveBtn.classList.add('is-loading');
       try {
         const res = await updateLink(editingTempURL, patch);
         if (!res.ok) {
@@ -420,16 +427,19 @@ export function setupCreateProfilePopup() {
         status.textContent = 'Erreur réseau';
       } finally {
         saveBtn.disabled = false;
+        saveBtn.classList.remove('is-loading');
       }
     }
   });
 
   // Dupliquer un lien existant (copie champs sauf URL)
+  let isLoadingDuplicate = false;
   duplicateBtn && duplicateBtn.addEventListener('click', async () => {
-    const model = getActiveModel(); 
-    if (!model) { status.textContent = 'Sélectionnez un modèle'; return; }
+    if (isLoadingDuplicate) return; isLoadingDuplicate = true;
+    const model = getActiveModel();
+    if (!model) { status.textContent = 'Sélectionnez un modèle'; isLoadingDuplicate = false; return; }
     const temp = duplicateSelect.hidden ? duplicateSelect.hidden.value : '';
-    if (!temp) { applyPayload(emptyPayload()); updatePreview(); return; }
+    if (!temp) { applyPayload(emptyPayload()); updatePreview(); isLoadingDuplicate = false; return; }
     status.textContent = 'Chargement du lien…';
     try {
       const data = await getLink(temp);
@@ -437,12 +447,15 @@ export function setupCreateProfilePopup() {
         status.textContent = `Le lien appartient au modèle ${data.modelName}`;
         return;
       }
-      data.tempURL = fields.tempURL.value; // On conserve l'URL 
+      data.tempURL = ''; // Vider l'URL pour forcer la saisie d'une nouvelle
+      if (fields.tempURL) fields.tempURL.value = '';
       applyPayload(data);
       updatePreview();
-      status.textContent = 'Champs dupliqués';
+      status.textContent = 'Profil dupliqué — saisissez une nouvelle URL et enregistrez.';
     } catch (e) {
       status.textContent = 'Erreur réseau';
+    } finally {
+      isLoadingDuplicate = false;
     }
   });
 

@@ -21,6 +21,14 @@ const __dirname = path.dirname(__filename);
 // Configuration de l'application
 const app = express();
 
+// Headers de sécurité
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 // CORRECTION 1 : Le port DOIT être 'passenger' sur PlanetHoster
 // On priorise 'passenger' si on détecte qu'on n'est pas en local dev
 let PORT = 'passenger';
@@ -46,6 +54,26 @@ app.use(express.urlencoded({ extended: true }));
 
 // foward de port
 app.set('trust proxy', true);
+
+// Rate limiter minimal en mémoire (sans dépendance externe)
+// Map IP → { count, resetAt }
+const ipRequests = new Map();
+function simpleRateLimit(maxPerMinute) {
+  return (req, res, next) => {
+    const ip = req.ip || 'unknown';
+    const now = Date.now();
+    const entry = ipRequests.get(ip);
+    if (!entry || now > entry.resetAt) {
+      ipRequests.set(ip, { count: 1, resetAt: now + 60_000 });
+      return next();
+    }
+    if (entry.count >= maxPerMinute) {
+      return res.status(429).json({ error: 'Trop de requêtes' });
+    }
+    entry.count++;
+    return next();
+  };
+}
 
 //Initialisation
 async function startServer() {
@@ -121,9 +149,9 @@ if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET
                 const bgUrl = renderProfile.backgroundImage;
                 const absPath = bgUrl ? path.join(__dirname, 'public', bgUrl.replace(/^\//, '')) : '';
                 const gradient = await computeBackgroundGradientFromImage(absPath);
-                renderProfile.backgroundGradient = gradient || 'white';
+                renderProfile.backgroundGradient = gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             } catch (e) {
-                renderProfile.backgroundGradient = 'white';
+                renderProfile.backgroundGradient = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             }
             return res.render('profilePreview', { profile: renderProfile });
         } catch (err) {
@@ -135,7 +163,7 @@ if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET
 }
 
 // Route page chargement via lien temporaire (/:link) avec vérification du lien
-app.get('/:link', validateLink, async (req, res) => {
+app.get('/:link', simpleRateLimit(20), validateLink, async (req, res) => {
     const { link } = req.params;
     const exp = Date.now() + 30_000; // 30s de validité
     let sig = 'invalid';
@@ -153,8 +181,8 @@ app.get('/:link', validateLink, async (req, res) => {
     });
 });
 
-// Route rendu page de profil final 
-app.get('/profile/:finalURL', async (req, res) => {
+// Route rendu page de profil final
+app.get('/profile/:finalURL', simpleRateLimit(30), async (req, res) => {
     //Vérification de l'existence du profil
     try {
         const { finalURL } = req.params;
@@ -182,7 +210,7 @@ app.get('/profile/:finalURL', async (req, res) => {
             titleIG: profile.titleIG || profile.linkIG || '',
             titleTG: profile.titleTG || profile.linkTG || '',
             finalURL,
-            countdownSeconds: Math.round(profile.countdownHours * 3600),
+            countdownSeconds: (() => { const h = Number(profile.countdownHours); return (Number.isFinite(h) && h > 0) ? Math.round(h * 3600) : 0; })(),
             countdownTitle: profile.countdownTitle || '',
         };
 
@@ -194,10 +222,10 @@ app.get('/profile/:finalURL', async (req, res) => {
                 primaryColor: profile.primaryColor,
                 secondaryColor: profile.secondaryColor,
             });
-            renderProfile.backgroundGradient = gradient || 'white';
+            renderProfile.backgroundGradient = gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
         } catch (e) {
             console.warn('Background gradient computation failed:', e);
-            renderProfile.backgroundGradient = 'white';
+            renderProfile.backgroundGradient = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
         }
 
         return res.render('profile', { profile : renderProfile });
@@ -208,42 +236,52 @@ app.get('/profile/:finalURL', async (req, res) => {
 });
 
 // Route de redirection qui journalise le clic côté serveur, puis redirige
-app.get('/go/:finalURL/:type', async (req, res) => {
+app.get('/go/:finalURL/:type', simpleRateLimit(30), async (req, res) => {
     try {
         const { finalURL, type } = req.params;
-        const allowed = ['OF', 'MY', 'IG', 'TG'];
-        // if (!finalURL || typeof finalURL !== 'string' || finalURL.length > 128) {
-        //     return res.status(400).render('404');
-        // }
-        // if (!type || typeof type !== 'string' || !allowed.includes(type)) {
-        //     return res.status(400).render('404');
-        // }
+        const allowed = [‘OF’, ‘MY’, ‘IG’, ‘TG’];
+        if (!finalURL || typeof finalURL !== ‘string’ || finalURL.length > 128) {
+            return res.status(400).render(‘404’);
+        }
+        if (!type || typeof type !== ‘string’ || !allowed.includes(type)) {
+            return res.status(400).render(‘404’);
+        }
 
         const link = await LinkRepository.findByFinalURL(finalURL);
         if (!link) {
-            return res.status(404).render('404');
+            return res.status(404).render(‘404’);
         }
 
         // Sélectionner l’URL cible selon le type
-        let targetUrl = '';
+        let targetUrl = ‘’;
         switch (type) {
-            case 'OF':
-                targetUrl = link.linkOF || '';
+            case ‘OF’:
+                targetUrl = link.linkOF || ‘’;
                 break;
-            case 'MY':
-                targetUrl = link.linkMYM || '';
+            case ‘MY’:
+                targetUrl = link.linkMYM || ‘’;
                 break;
-            case 'IG':
-                targetUrl = link.linkIG || '';
+            case ‘IG’:
+                targetUrl = link.linkIG || ‘’;
                 break;
-            case 'TG':
-                targetUrl = link.linkTG || '';
+            case ‘TG’:
+                targetUrl = link.linkTG || ‘’;
                 break;
         }
 
-        // if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
-        //     return res.status(404).render('404');
-        // }
+        // Validation stricte de l’URL cible pour bloquer javascript:, data:, etc.
+        if (targetUrl) {
+            try {
+                const parsed = new URL(targetUrl.startsWith(‘http’) ? targetUrl : ‘https://’ + targetUrl);
+                if (parsed.protocol !== ‘http:’ && parsed.protocol !== ‘https:’) {
+                    return res.status(404).render(‘404’);
+                }
+            } catch {
+                return res.status(404).render(‘404’);
+            }
+        } else {
+            return res.status(404).render(‘404’);
+        }
 
         // Logger le clic
         try {
@@ -295,7 +333,7 @@ app.get('/api/getProfileUrl/:link', requireSignedOrApiKeyAndCaptcha, async (req,
 });
 
 // Route liste des liens d'un modèle (admin)
-app.get(`/${ADMIN_URL_SECRET}/api/models/:name/links`, async (req, res) => {
+app.get(`/${ADMIN_URL_SECRET}/api/models/:name/links`, requireAdminApiKey, async (req, res) => {
     try {
         const { name } = req.params;
         if (!name || typeof name !== 'string' || name.length > 255) {
@@ -314,7 +352,7 @@ app.get(`/${ADMIN_URL_SECRET}/api/models/:name/links`, async (req, res) => {
 });
 
 // Détails d'un lien (admin)
-app.get(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, async (req, res) => {
+app.get(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, requireAdminApiKey, async (req, res) => {
     try {
         const { tempURL } = req.params;
         if (!tempURL || typeof tempURL !== 'string' || tempURL.length > 255) {
@@ -344,8 +382,8 @@ app.get(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, async (req, res) => {
     }
 });
 
-// Vérifier l'existence d'un lien 
-app.get(`/${ADMIN_URL_SECRET}/api/links/exists/:tempURL`, async (req, res) => {
+// Vérifier l'existence d'un lien
+app.get(`/${ADMIN_URL_SECRET}/api/links/exists/:tempURL`, requireAdminApiKey, async (req, res) => {
     try {
         const { tempURL } = req.params;
         if (!tempURL || typeof tempURL !== 'string' || tempURL.length > 255) {
@@ -363,11 +401,11 @@ app.get(`/${ADMIN_URL_SECRET}/api/links/exists/:tempURL`, async (req, res) => {
 /*             API post              */
 
 // Créer un modèle (clé primaire = name) (admin)
-app.post(`/${ADMIN_URL_SECRET}/api/models`, async (req, res) => {
+app.post(`/${ADMIN_URL_SECRET}/api/models`, requireAdminApiKey, async (req, res) => {
     try {
         const { name } = req.body;
-        if (!name || typeof name !== 'string') {
-            return res.status(400).json({ success: false, error: 'Paramètre name requis (string)' });
+        if (!name || typeof name !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(name)) {
+            return res.status(400).json({ success: false, error: 'Paramètre name requis (alphanumérique, tirets, underscores uniquement)' });
         }
         if (name.length > 255) {
             return res.status(400).json({ success: false, error: 'name doit faire ≤ 255 caractères' });
@@ -392,12 +430,12 @@ app.post(`/${ADMIN_URL_SECRET}/api/models`, async (req, res) => {
         
     } catch (err) {
         console.error('Erreur création modèle:', err);
-        return res.status(500).json({ success: false, error: 'Erreur serveur', details: err.message });
+        return res.status(500).json({ success: false, error: 'Erreur serveur' });
     }
 });
 
 // Supprimer un modèle (admin)
-app.delete(`/${ADMIN_URL_SECRET}/api/models/:name`, async (req, res) => {
+app.delete(`/${ADMIN_URL_SECRET}/api/models/:name`, requireAdminApiKey, async (req, res) => {
     try {
         const { name } = req.params;
         if (!name || typeof name !== 'string' || name.length > 255) {
@@ -421,12 +459,12 @@ app.delete(`/${ADMIN_URL_SECRET}/api/models/:name`, async (req, res) => {
         return res.json({ success: true });
     } catch (err) {
         console.error('Erreur suppression modèle:', err);
-        return res.status(500).json({ success: false, error: 'Erreur serveur', details: err.message });
+        return res.status(500).json({ success: false, error: 'Erreur serveur' });
     }
 });
 
 // Créer un lien (admin)
-app.post(`/${ADMIN_URL_SECRET}/api/links`, async (req, res) => {
+app.post(`/${ADMIN_URL_SECRET}/api/links`, requireAdminApiKey, async (req, res) => {
     try {
         const {
             tempURL,
@@ -453,8 +491,27 @@ app.post(`/${ADMIN_URL_SECRET}/api/links`, async (req, res) => {
         if (String(tempURL).length > 255) {
             return res.status(400).json({ success: false, error: 'tempURL doit faire ≤ 255 caractères' });
         }
+        if (!/^[a-zA-Z0-9_-]+$/.test(tempURL)) {
+            return res.status(400).json({ success: false, error: 'tempURL: uniquement lettres, chiffres, tirets et underscores' });
+        }
         if (String(modelName).length > 255) {
             return res.status(400).json({ success: false, error: 'modelName doit faire ≤ 255 caractères' });
+        }
+
+        // Validation des chemins d'images pour bloquer les path traversal
+        function isValidImagePathStrict(p) {
+            if (!p || typeof p !== 'string' || p === '') return true;
+            return !p.includes('..') && !p.includes('\\') && p.length <= 255;
+        }
+        if (!isValidImagePathStrict(background) || !isValidImagePathStrict(picture)) {
+            return res.status(400).json({ error: 'Chemin image invalide' });
+        }
+
+        // Vérifier le nombre de liens (entre 1 et 3)
+        const linkValues = [linkOF, linkMYM, linkIG, linkTG];
+        const providedLinkCount = linkValues.filter(v => typeof v === 'string' && v.trim().length > 0).length;
+        if (providedLinkCount < 1 || providedLinkCount > 3) {
+            return res.status(400).json({ success: false, error: 'Un profil doit contenir entre 1 et 3 liens (OF, MYM, IG, TG)' });
         }
 
         // Vérifier existence du modèle
@@ -477,19 +534,19 @@ app.post(`/${ADMIN_URL_SECRET}/api/links`, async (req, res) => {
             titleMYM: titleMYM ?? null,
             titleIG: titleIG ?? null,
             titleTG: titleTG ?? null,
-            countdownHours: (Number.isFinite(Number(countdownHours)) && Number(countdownHours) > 0) ? Math.floor(Number(countdownHours)) : 0,
+            countdownHours: (() => { const h = Number(countdownHours); if (!Number.isFinite(h) || h <= 0 || h > 8760) return 0; return Math.floor(h); })(),
             countdownTitle: countdownTitle ?? null
         });
 
         return res.status(201).json({ success: true, link });
     } catch (err) {
         console.error('Erreur création lien:', err);
-        return res.status(500).json({ success: false, error: 'Erreur serveur', details: err.message });
+        return res.status(500).json({ success: false, error: 'Erreur serveur' });
     }
 });
 
 // Mettre à jour un lien (admin)
-app.put(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, async (req, res) => {
+app.put(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, requireAdminApiKey, async (req, res) => {
     try {
         const { tempURL } = req.params;
         if (!tempURL || typeof tempURL !== 'string' || tempURL.length > 255) {
@@ -523,6 +580,15 @@ app.put(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, async (req, res) => {
             return res.status(400).json({ success: false, error: 'Paramètre background requis' });
         }
 
+        // Validation des chemins d'images pour bloquer les path traversal
+        const isValidImgPath = (p) => {
+            if (!p || typeof p !== 'string' || p === '') return true;
+            return !p.includes('..') && !p.includes('\\') && p.length <= 255;
+        };
+        if (!isValidImgPath(background) || !isValidImgPath(picture)) {
+            return res.status(400).json({ error: 'Chemin image invalide' });
+        }
+
         // Vérifier le nombre de liens (entre 1 et 3)
         const links = [linkOF, linkMYM, linkIG, linkTG];
         const providedCount = links.filter(v => typeof v === 'string' && v.trim().length > 0).length;
@@ -543,7 +609,7 @@ app.put(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, async (req, res) => {
             titleMYM: titleMYM ?? null,
             titleIG: titleIG ?? null,
             titleTG: titleTG ?? null,
-            countdownHours: (Number.isFinite(Number(countdownHours)) && Number(countdownHours) > 0) ? Math.floor(Number(countdownHours)) : 0,
+            countdownHours: (() => { const h = Number(countdownHours); if (!Number.isFinite(h) || h <= 0 || h > 8760) return 0; return Math.floor(h); })(),
             countdownTitle: countdownTitle ?? null,
         };
 
@@ -551,11 +617,11 @@ app.put(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, async (req, res) => {
         return res.json({ success: true });
     } catch (err) {
         console.error('Erreur mise à jour lien:', err);
-        return res.status(500).json({ success: false, error: 'Erreur serveur', details: err.message });
+        return res.status(500).json({ success: false, error: 'Erreur serveur' });
     }
 });
 
-app.delete(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, async (req, res) => {
+app.delete(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, requireAdminApiKey, async (req, res) => {
     try {
         const { tempURL } = req.params;
         if (!tempURL || typeof tempURL !== 'string' || tempURL.length > 255) {
@@ -571,12 +637,12 @@ app.delete(`/${ADMIN_URL_SECRET}/api/links/:tempURL`, async (req, res) => {
         return res.json({ success: true });
     } catch (err) {
         console.error('Erreur suppression lien:', err);
-        return res.status(500).json({ success: false, error: 'Erreur serveur', details: err.message });
+        return res.status(500).json({ success: false, error: 'Erreur serveur' });
     }
 });
 
 // Récupération des visites par temporalité (admin)
-app.post(`/${ADMIN_URL_SECRET}/api/visits/by-range`, async (req, res) => {
+app.post(`/${ADMIN_URL_SECRET}/api/visits/by-range`, requireAdminApiKey, async (req, res) => {
     try {
         // Vérifications des paramètres
         const { tempURLs, range } = req.body;
@@ -586,6 +652,9 @@ app.post(`/${ADMIN_URL_SECRET}/api/visits/by-range`, async (req, res) => {
         const urls = Array.from(new Set(tempURLs.map(s => String(s || '').trim()).filter(s => s.length > 0 && s.length <= 255)));
         if (urls.length === 0) {
             return res.status(400).json({ error: 'Aucune URL valide' });
+        }
+        if (urls.length > 50) {
+            return res.status(400).json({ error: 'Maximum 50 URLs par requête' });
         }
         const r = String(range || '').trim();
         if (!['month', 'week', '24h', '48h', '72h'].includes(r)) {
@@ -615,7 +684,7 @@ app.post(`/${ADMIN_URL_SECRET}/api/visits/by-range`, async (req, res) => {
 });
 
 // Récupération des clicks par temporalité (admin)
-app.post(`/${ADMIN_URL_SECRET}/api/clicks/by-range`, async (req, res) => {
+app.post(`/${ADMIN_URL_SECRET}/api/clicks/by-range`, requireAdminApiKey, async (req, res) => {
     try {
         // Vérifications des paramètres
         const { finalURLs, range } = req.body;
@@ -627,6 +696,9 @@ app.post(`/${ADMIN_URL_SECRET}/api/clicks/by-range`, async (req, res) => {
         const urls = Array.from(new Set(finalURLs.map(s => String(s || '').trim()).filter(s => s.length === 128)));
         if (urls.length === 0) {
             return res.status(400).json({ error: 'Aucune URL valide' });
+        }
+        if (urls.length > 50) {
+            return res.status(400).json({ error: 'Maximum 50 URLs par requête' });
         }
 
         const r = String(range || '').trim();
@@ -665,7 +737,7 @@ app.post(`/${ADMIN_URL_SECRET}/api/clicks/by-range`, async (req, res) => {
 });
 
 // Upload d'image (admin)
-app.post(`/${ADMIN_URL_SECRET}/api/upload-image`, (req, res, next) => {
+app.post(`/${ADMIN_URL_SECRET}/api/upload-image`, requireAdminApiKey, (req, res, next) => {
     const upload = multer({
         storage: multer.memoryStorage(),
         limits: { fileSize: 5 * 1024 * 1024 },
@@ -689,6 +761,9 @@ app.post(`/${ADMIN_URL_SECRET}/api/upload-image`, (req, res, next) => {
         if (!f) return res.status(400).json({ error: 'NO_FILE' });
         const base = path.basename(f.originalname);
         const target = String(req.body.target || 'photos');
+        if (!['fonds', 'photos'].includes(target)) {
+            return res.status(400).json({ error: 'target invalide' });
+        }
         const folder = target === 'fonds' ? 'fonds' : 'photos';
         const modelName = String(req.body.modelName || '').trim();
         const safeModel = modelName ? path.basename(modelName) : '';
@@ -705,7 +780,7 @@ app.post(`/${ADMIN_URL_SECRET}/api/upload-image`, (req, res, next) => {
 });
 
 // Liste des fichiers (admin)
-app.get(`/${ADMIN_URL_SECRET}/api/files`, async (req, res) => {
+app.get(`/${ADMIN_URL_SECRET}/api/files`, requireAdminApiKey, async (req, res) => {
     try {
         const dir = String(req.query.dir || 'photos');
         const folder = dir === 'fonds' ? 'fonds' : 'photos';
@@ -723,7 +798,7 @@ app.get(`/${ADMIN_URL_SECRET}/api/files`, async (req, res) => {
 });
 
 // Suppression d'un fichier (admin)
-app.delete(`/${ADMIN_URL_SECRET}/api/file`, async (req, res) => {
+app.delete(`/${ADMIN_URL_SECRET}/api/file`, requireAdminApiKey, async (req, res) => {
     try {
         const dir = String(req.query.dir || 'photos');
         const name = String(req.query.name || '');
@@ -733,6 +808,19 @@ app.delete(`/${ADMIN_URL_SECRET}/api/file`, async (req, res) => {
         const safeModel = model ? path.basename(model) : '';
         const baseName = path.basename(name);
         const p = safeModel ? path.join(__dirname, 'public', folder, safeModel, baseName) : path.join(__dirname, 'public', folder, baseName);
+        const publicDir = path.resolve(path.join(__dirname, 'public'));
+        const resolvedPath = path.resolve(p);
+        if (!resolvedPath.startsWith(publicDir + path.sep)) {
+            return res.status(403).json({ error: 'INVALID_PATH' });
+        }
+        try {
+            const stats = await fs.lstat(resolvedPath);
+            if (stats.isSymbolicLink()) {
+                return res.status(403).json({ error: 'INVALID_PATH' });
+            }
+        } catch {
+            return res.status(404).json({ error: 'NOT_FOUND' });
+        }
         await fs.unlink(p);
         return res.json({ ok: true });
     } catch (e) {

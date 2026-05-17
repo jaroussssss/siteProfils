@@ -90,7 +90,11 @@ body {
   font-size: 2.5rem;
   font-weight: 700;
   margin: 10px;
-  white-space: pre-line;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90vw;
 }
 
 /* Contenu profil */
@@ -138,6 +142,10 @@ body {
   background: rgba(255, 255, 255, 0.22);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
+}
+.profile-link-oval:focus-visible {
+  outline: 3px solid rgba(255,255,255,0.8);
+  outline-offset: 3px;
 }
 
 /* Compte à rebours */

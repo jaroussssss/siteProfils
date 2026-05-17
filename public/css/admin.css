@@ -3,7 +3,7 @@
   --panel: #111827;
   --border: #1f2937;
   --text: #e5e7eb;
-  --muted: #9ca3af;
+  --muted: #b8bcc9;
   --accent: #e32c2c;
 }
 
@@ -52,6 +52,10 @@ body {
 .btn-secondary { background: #374151; color: #e5e7eb; width: 200px; }
 .btn-danger { background: #e32c2c; color: #fff; width: 200px;}
 .btn:hover { filter: brightness(1.1); }
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(88, 86, 143, 0.4);
+}
 
 #createModelBtn {
   display: block;
@@ -184,10 +188,14 @@ canvas { background: #0b1220; border: 1px solid var(--border); border-radius: 8p
   background: #0b1220; color: #fff; padding: 8px 10px; font-family: inherit; font-size: 16px; }
 [disabled].input, .input:disabled { opacity: .6; cursor: not-allowed; background: #0f1628; color: #bfc3cc; }
 [hidden] { display: none !important; }
-.modal-close { position: absolute; left: 556px; top: 12px; width: 32px; height: 32px; 
+.modal-close { position: absolute; right: 12px; top: 12px; width: 32px; height: 32px;
   border-radius: 16px; border: 1px solid var(--accent); background: var(--panel); 
   color: var(--text); font-size: 18px; line-height: 28px; text-align: center; cursor: pointer; }
 .modal-close:hover { filter: brightness(1.1); }
+.modal-close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(227, 44, 44, 0.4);
+}
 .confirm-content { padding-top: 0px; padding-bottom: 15px; text-align: center; font-size: 16px; font-weight: 600; }
 
 /* Modal création profil */
@@ -217,7 +225,7 @@ canvas { background: #0b1220; border: 1px solid var(--border); border-radius: 8p
 #profilePreview { width: 100%; height: 100%; border: 0; display: block; }
 #profilePreview { transition: filter 200ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1); will-change: filter, transform; }
 #profilePreview.is-loading { filter:  brightness(0.97) saturate(0.95); transform: scale(0.996); }
-.profile-config-pane { flex: 1; padding: 0 16px; overflow: auto; height: 100%;}
+.profile-config-pane { flex: 1; padding: 0 16px; overflow: auto; overflow-y: auto; height: 100%;}
 .config-group { display: flex; flex-direction: column;  margin: 0px; }
 .config-group label { font-weight: 600; font-size: 14px; }
 .modal-panel-large .modal-close { left: auto; right: 16px; top: 12px; }
@@ -249,4 +257,26 @@ canvas { background: #0b1220; border: 1px solid var(--border); border-radius: 8p
 #delProfilePicture { width: 45%; height: 35px; margin: 0 0 0 2.5%; }
 
 #profileBackgroundSelector { --select-width: 45%; --select-height: 35px; --select-margin: 0 2.5% 0 0; }
-#delProfileBackground { width: 45%; height: 35px; margin: 0 0 0 2.5%; } 
+#delProfileBackground { width: 45%; height: 35px; margin: 0 0 0 2.5%; }
+
+@media (max-width: 768px) {
+  .app-container { flex-direction: column; }
+  .sidebar { width: 100%; min-width: unset; border-right: none; border-bottom: 1px solid var(--border); max-height: 140px; overflow-y: auto; }
+  .models-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  .models-item { flex: 0 0 auto; }
+}
+
+.skip-link { position: absolute; top: -40px; left: 0; background: var(--accent); color: #fff; padding: 8px 12px; text-decoration: none; z-index: 10000; border-radius: 0 0 4px 0; }
+.skip-link:focus { top: 0; }
+
+.btn.is-loading { opacity: 0.7; pointer-events: none; }
+.btn.is-loading::after { content: ''; display: inline-block; width: 10px; height: 10px; border: 2px solid currentColor; border-radius: 50%; border-top-color: transparent; animation: spin 0.6s linear infinite; margin-left: 0.4em; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

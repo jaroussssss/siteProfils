@@ -19,7 +19,7 @@ export const ClickRepository = {
 
   // Comptage de tous les clicks par URL finale et type de click
   countByFinalURL(finalURL, clickType) {
-    return Click.count({ where: { linkFinalURL: finalURL, clickType } });
+    return Click.count({ where: { linkFinalURL: finalURL, type: clickType } });
   },
 
   // Retourne le nombre de clics par jour sur les 30 derniers jours pour un type de click

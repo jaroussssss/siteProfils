@@ -1,11 +1,13 @@
-<% 
-    const title = (profile && profile.name ? profile.name : 'Profil') + ' - Profil'; 
+<%
+    const title = (profile && profile.name ? profile.name : 'Profil') + ' - Profil';
+
+    const sanitizeMeta = (str) => String(str || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     function computeGradient() {
-        if (profile && profile.backgroundGradient && String(profile.backgroundGradient).trim() !== '') {
+        if (profile && profile.backgroundGradient && String(profile.backgroundGradient).trim() !== '' && String(profile.backgroundGradient).trim() !== 'white') {
             return profile.backgroundGradient;
         }
-        return 'white';
+        return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
     }
 
   const backgroundGradient = computeGradient();
@@ -16,6 +18,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %></title>
+  <meta name="description" content="<%= profile.name ? 'Profil de ' + sanitizeMeta(profile.name) : 'Profil' %>">
+  <meta property="og:title" content="<%= sanitizeMeta(title) %>">
+  <meta property="og:type" content="profile">
   <link rel="stylesheet" href="/css/profile.css">
 </head>
 <body style="background: <%= backgroundGradient %>">
@@ -25,7 +30,7 @@
       <div class="profile-header">
         <% if (profile.image && profile.image.trim() !== '') { %>
           <div class="profile-image-wrapper">
-            <img src="<%= profile.image %>" alt="<%= profile.name %>" class="profile-image">
+            <img src="<%= profile.image %>" alt="<%= profile.name %>" class="profile-image" loading="lazy">
             <span class="active-indicator" aria-hidden="true" title="Actif"></span>
           </div>
         <% } %>
@@ -36,25 +41,25 @@
         <div class="profile-links">
           <% if (profile.lienOF && profile.lienOF.trim() !== '') { %>
             <a href="/go/<%= profile.finalURL %>/OF" target="_blank" rel="noopener noreferrer" class="profile-link-oval" data-click-type="OF">
-              <img src="/logos/OF.png" alt="Logo OF" class="link-logo">
+              <img src="/logos/OF.png" alt="Logo OF" class="link-logo" loading="lazy">
               <span><%= profile.titleOF %></span>
             </a>
           <% } %>
           <% if (profile.lienMYM && profile.lienMYM.trim() !== '') { %>
             <a href="/go/<%= profile.finalURL %>/MY" target="_blank" rel="noopener noreferrer" class="profile-link-oval" data-click-type="MY">
-              <img src="/logos/MYM.png" alt="Logo MYM" class="link-logo">
+              <img src="/logos/MYM.png" alt="Logo MYM" class="link-logo" loading="lazy">
               <span><%= profile.titleMYM %></span>
             </a>
           <% } %>
           <% if (profile.lienIG && profile.lienIG.trim() !== '') { %>
             <a href="/go/<%= profile.finalURL %>/IG" target="_blank" rel="noopener noreferrer" class="profile-link-oval" data-click-type="IG">
-              <img src="/logos/IG.png" alt="Logo IG" class="link-logo">
+              <img src="/logos/IG.png" alt="Logo IG" class="link-logo" loading="lazy">
               <span><%= profile.titleIG %></span>
             </a>
           <% } %>
           <% if (profile.lienTG && profile.lienTG.trim() !== '') { %>
             <a href="/go/<%= profile.finalURL %>/TG" target="_blank" rel="noopener noreferrer" class="profile-link-oval" data-click-type="TG">
-              <img src="/logos/TG.png" alt="Logo TG" class="link-logo">
+              <img src="/logos/TG.png" alt="Logo TG" class="link-logo" loading="lazy">
               <span><%= profile.titleTG %></span>
             </a>
           <% } %>

@@ -60,6 +60,7 @@ function requireAdminApiKey(req, res, next) {
         : undefined;
     const key = headerKey || bearer;
     if (!key || key !== ADMIN_API_KEY) {
+        console.warn(`⚠️ Accès API admin refusé - clé: ${key ? '[fournie invalide]' : '[absente]'} - IP: ${req.ip}`);
         return res.status(401).json({ error: 'Accès refusé' });
     }
     next();
@@ -101,7 +102,13 @@ async function requireSignedOrApiKeyAndCaptcha(req, res, next) {
         return res.status(403).json({ error: 'Lien expiré' });
     }
     const expected = computeSignature(link, exp);
-    if (expected !== sig) {
+    let sigValid = false;
+    try {
+        sigValid = crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig));
+    } catch {
+        sigValid = false;
+    }
+    if (!sigValid) {
         return res.status(403).json({ error: 'Signature invalide' });
     }
     console.log('✅ Signature vérifiée pour:', link);

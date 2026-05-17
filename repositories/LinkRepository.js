@@ -13,22 +13,15 @@ export const LinkRepository = {
       throw new Error('Un profil doit contenir entre 1 et 3 liens (OF, MYM, IG, TG)');
     }
 
-    //Créé un finalURL unique
-    const maxAttempts = 3;
-    let generatedFinal = null;
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const candidate = nanoid(128);
-      const exists = await Link.findOne({ where: { finalURL: candidate } });
-      if (!exists) {
-        generatedFinal = candidate;
-        break;
+    // Créé un finalURL unique de manière atomique (retry sur conflit d'unicité)
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        return await Link.create({ ...rest, finalURL: nanoid(128) }, options);
+      } catch (err) {
+        if (err.name !== 'SequelizeUniqueConstraintError') throw err;
       }
     }
-    if (!generatedFinal) {
-      throw new Error('Impossible de générer un finalURL unique après plusieurs tentatives');
-    }
-    
-    return Link.create({ ...rest, finalURL: generatedFinal }, options);
+    throw new Error('Impossible de générer un finalURL unique');
   },
 
   // Retourne tous les liens
