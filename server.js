@@ -162,8 +162,11 @@ if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET
     console.warn('ADMIN_URL_SECRET non configuré ou longueur ≠ 128: page admin désactivée');
 }
 
-// Route statique pour claudeboost (avant /:link)
-app.use('/claudeboost', express.static(path.join(__dirname, 'public', 'claudeboost')));
+// Route statique claudeboost avec CSP permissif
+app.use('/claudeboost', (req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' https: data: blob:");
+  next();
+}, express.static(path.join(__dirname, 'public', 'claudeboost')));
 
 // Route page chargement via lien temporaire (/:link) avec vérification du lien
 app.get('/:link', simpleRateLimit(20), validateLink, async (req, res) => {
