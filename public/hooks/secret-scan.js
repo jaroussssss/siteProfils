@@ -22,8 +22,9 @@ if (!input) {
   process.exit(0);
 }
 
-const filePath = (input.tool_input?.file_path || input.tool_input?.path || '').toLowerCase();
-const content  = input.tool_input?.content || input.tool_input?.new_string || '';
+// PreToolUse : paramètres à la racine (pas dans tool_input)
+const filePath = (input.file_path || input.path || '').toLowerCase();
+const content  = input.content || input.new_string || '';
 
 // Extensions à inspecter (fichiers de code uniquement)
 const SCAN_EXTS = new Set(['.js', '.ts', '.mjs', '.cjs', '.jsx', '.tsx',

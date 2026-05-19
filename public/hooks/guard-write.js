@@ -11,6 +11,7 @@ if (!input) {
   process.exit(0);
 }
 
+// PreToolUse : paramètres à la racine (pas dans tool_input)
 const rawPath = (input.file_path || input.path || '');
 const p = rawPath.toLowerCase().replace(/\\/g, '/');
 

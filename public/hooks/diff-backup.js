@@ -24,7 +24,8 @@ const allow = () => { console.log(JSON.stringify({ decision: 'allow' })); proces
 
 if (!input) return allow();
 
-const filePath = input.tool_input?.file_path || input.tool_input?.path || '';
+// PreToolUse : paramètres à la racine (pas dans tool_input)
+const filePath = input.file_path || input.path || '';
 if (!filePath || !fs.existsSync(filePath)) return allow();
 
 try {
