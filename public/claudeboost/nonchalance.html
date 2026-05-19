@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NonChalance × Claude — Générer la doc sans coder</title>
+  <style>
+    :root {
+      --bg: #0f0f13; --surface: #1a1a24; --surface2: #21212e;
+      --border: #2a2a3a; --accent: #7c6af7; --accent2: #4fd1c5;
+      --text: #e8e8f0; --muted: #888; --green: #4ade80; --yellow: #fbbf24;
+      --nc: #e07a5f; --nc2: #f2cc8f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', sans-serif; line-height: 1.65; }
+    a { color: var(--accent2); }
+
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+    .topbar a { color: var(--muted); font-size: 0.88rem; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+    .topbar a:hover { color: var(--text); }
+    .topbar span { color: var(--border); }
+
+    header { padding: 60px 24px 40px; text-align: center; background: linear-gradient(180deg, #1a1218 0%, var(--bg) 100%); }
+    .nc-logo { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, var(--nc), var(--nc2)); margin-bottom: 20px; font-size: 2rem; box-shadow: 0 0 30px rgba(224,122,95,0.3); }
+    header h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 800; margin-bottom: 10px; }
+    header h1 span { background: linear-gradient(135deg, var(--nc), var(--nc2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    header p { color: var(--muted); font-size: 1.05rem; max-width: 560px; margin: 0 auto 20px; }
+
+    .safety-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: 99px; padding: 6px 16px; font-size: 0.85rem; color: var(--green); margin-bottom: 8px; }
+
+    main { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+    section { margin-bottom: 52px; }
+    h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+
+    /* Garanties */
+    .guarantees { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 48px; }
+    .guarantee { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .guarantee-icon { font-size: 1.6rem; margin-bottom: 10px; }
+    .guarantee h4 { font-size: 0.95rem; margin-bottom: 6px; }
+    .guarantee p { color: var(--muted); font-size: 0.82rem; }
+    .guarantee.safe { border-color: rgba(74,222,128,0.3); }
+    .guarantee.safe h4 { color: var(--green); }
+
+    /* Proof of concept */
+    .poc-grid { display: flex; flex-direction: column; gap: 24px; }
+    .poc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .poc-head { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 14px; }
+    .poc-num { width: 32px; height: 32px; min-width: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--nc), var(--nc2)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: #fff; }
+    .poc-meta h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .poc-meta p { color: var(--muted); font-size: 0.85rem; }
+    .poc-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .poc-side { padding: 18px 22px; }
+    .poc-side:first-child { border-right: 1px solid var(--border); }
+    .poc-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--nc); font-weight: 600; margin-bottom: 8px; }
+    .poc-label.result { color: var(--accent2); }
+    .prompt-text { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'Courier New', monospace; font-size: 0.83rem; color: #c8c8d0; white-space: pre-wrap; position: relative; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--nc); color: #fff; border: none; border-radius: 5px; padding: 4px 10px; font-size: 0.72rem; cursor: pointer; font-family: inherit; }
+    .copy-btn:hover { opacity: 0.85; }
+    .copy-btn.ok { background: var(--green); }
+    .result-text { background: #0a0a10; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'Courier New', monospace; font-size: 0.8rem; color: #cfcfd8; white-space: pre-wrap; max-height: 280px; overflow-y: auto; line-height: 1.6; }
+    .result-text .hd { color: #fff; font-weight: 600; }
+    .result-text .hl { color: var(--accent2); }
+    .result-text .ok { color: var(--green); }
+    .result-text .wn { color: var(--yellow); }
+    .result-text .dm { color: var(--muted); }
+
+    /* Workflow */
+    .workflow { display: flex; flex-direction: column; gap: 0; }
+    .wf-step { display: flex; gap: 16px; }
+    .wf-left { display: flex; flex-direction: column; align-items: center; min-width: 44px; }
+    .wf-num { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--nc), var(--nc2)); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; color: #fff; }
+    .wf-line { width: 2px; background: var(--border); flex: 1; min-height: 20px; }
+    .wf-body { padding: 2px 0 28px 16px; flex: 1; }
+    .wf-body h4 { font-size: 0.97rem; font-weight: 600; margin-bottom: 4px; }
+    .wf-body p { color: var(--muted); font-size: 0.88rem; }
+    .wf-body code { background: var(--surface2); color: var(--accent2); padding: 2px 8px; border-radius: 5px; font-size: 0.82rem; }
+
+    /* Install CTA */
+    .install-cta { background: linear-gradient(135deg, rgba(224,122,95,0.08), rgba(242,204,143,0.05)); border: 1px solid rgba(224,122,95,0.25); border-radius: 16px; padding: 32px; text-align: center; }
+    .install-cta h3 { font-size: 1.3rem; margin-bottom: 8px; }
+    .install-cta p { color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
+    .install-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+    .os-tab { padding: 8px 20px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); color: var(--muted); font-weight: 600; cursor: pointer; transition: all .15s; }
+    .os-tab.active { border-color: var(--nc); background: rgba(224,122,95,0.1); color: var(--text); }
+    .cmd-install { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; max-width: 600px; margin: 0 auto; }
+    .cmd-install code { font-family: 'Courier New', monospace; font-size: 0.82rem; color: var(--accent2); flex: 1; word-break: break-all; text-align: left; }
+    .cmd-copy { background: var(--nc); color: #fff; border: none; border-radius: 7px; padding: 8px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: opacity .15s; }
+    .cmd-copy:hover { opacity: 0.85; }
+    .cmd-copy.ok { background: var(--green); }
+
+    footer { text-align: center; padding: 32px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
+
+    @media(max-width: 640px) {
+      .poc-body { grid-template-columns: 1fr; }
+      .poc-side:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/claudeboost/">
+    <svg width="20" height="20" viewBox="0 0 72 72" fill="none">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#7c6af7"/><stop offset="100%" stop-color="#4fd1c5"/></linearGradient></defs>
+      <rect width="72" height="72" rx="18" fill="url(#lg)" opacity="0.2"/>
+      <path d="M42 10L24 38h14L30 62l24-30H40L42 10Z" fill="url(#lg)"/>
+    </svg>
+    Claude Boost
+  </a>
+  <span>›</span>
+  <span style="color:var(--text)">NonChalance × Claude</span>
+</div>
+
+<header>
+  <div class="nc-logo">🎨</div>
+  <div class="safety-badge">
+    <span>🔒</span> Lecture seule · Aucun push possible · No-code
+  </div>
+  <h1>NonChalance<span> × Claude</span></h1>
+  <p>Génère de la documentation, comprends le code, propose des idées — sans toucher une ligne de code. Tu es branché sur le projet, en toute sécurité.</p>
+</header>
+
+<main>
+
+  <!-- Garanties -->
+  <div class="guarantees">
+    <div class="guarantee safe">
+      <div class="guarantee-icon">🔒</div>
+      <h4>Lecture seule</h4>
+      <p>Le code ne peut pas être modifié. Toute tentative de push est bloquée automatiquement.</p>
+    </div>
+    <div class="guarantee safe">
+      <div class="guarantee-icon">🚫</div>
+      <h4>No-code</h4>
+      <p>Tu n'écris pas de code. Claude lit le projet pour toi et te répond en français clair.</p>
+    </div>
+    <div class="guarantee safe">
+      <div class="guarantee-icon">🔌</div>
+      <h4>Pluggé sur le projet</h4>
+      <p>Claude a accès au code source réel — les réponses reflètent ce qui est vraiment implémenté.</p>
+    </div>
+    <div class="guarantee">
+      <div class="guarantee-icon">📝</div>
+      <h4>Doc générée en 30 sec</h4>
+      <p>README, changelogs, spécifications, guides utilisateur — tout ça depuis le code existant.</p>
+    </div>
+  </div>
+
+  <!-- Proof of concept -->
+  <section>
+    <h2>Proof of concept — Ce que tu peux faire maintenant</h2>
+    <div class="poc-grid">
+
+      <!-- POC 1 -->
+      <div class="poc-card">
+        <div class="poc-head">
+          <div class="poc-num">1</div>
+          <div class="poc-meta">
+            <h3>Comprendre une fonctionnalité sans lire le code</h3>
+            <p>Idéal pour onboarder ou vérifier comment quelque chose fonctionne.</p>
+          </div>
+        </div>
+        <div class="poc-body">
+          <div class="poc-side">
+            <div class="poc-label">Tu tapes dans Claude</div>
+            <div class="prompt-text" style="position:relative">
+              <button class="copy-btn" onclick="copyPoc(this)">Copier</button>Explique-moi comment fonctionne l'authentification dans ce projet. Je ne suis pas développeur, utilise un langage simple.</div>
+          </div>
+          <div class="poc-side">
+            <div class="poc-label result">Claude répond</div>
+            <div class="result-text"><span class="hd">Authentification de NonChalanceApp</span>
+
+Quand tu te connectes, voici ce qui se passe :
+
+<span class="hl">1. Tu entres ton email + mot de passe</span>
+   → Envoyé au serveur de manière sécurisée (HTTPS)
+
+<span class="hl">2. Le serveur vérifie ton identité</span>
+   → Ton mot de passe est comparé à une version
+     chiffrée stockée en base de données
+
+<span class="hl">3. Un "badge" temporaire est créé</span>
+   → C'est un JWT (JSON Web Token), valable 7 jours
+   → Il prouve que tu es bien toi sans que tu
+     retapes ton mot de passe à chaque page
+
+<span class="ok">✓ Ton badge est stocké dans un cookie sécurisé.</span>
+<span class="ok">✓ Il est invalidé si tu cliques "Déconnexion".</span>
+
+<span class="dm">Source : server/middleware/auth.js</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POC 2 -->
+      <div class="poc-card">
+        <div class="poc-head">
+          <div class="poc-num">2</div>
+          <div class="poc-meta">
+            <h3>Générer un README complet depuis le code</h3>
+            <p>Documentation qui reflète exactement ce qui est implémenté.</p>
+          </div>
+        </div>
+        <div class="poc-body">
+          <div class="poc-side">
+            <div class="poc-label">Tu tapes dans Claude</div>
+            <div class="prompt-text" style="position:relative">
+              <button class="copy-btn" onclick="copyPoc(this)">Copier</button>Génère un README.md professionnel pour ce projet. Inclus : description, fonctionnalités principales, installation, et usage de base. Base-toi sur le code existant.</div>
+          </div>
+          <div class="poc-side">
+            <div class="poc-label result">Claude génère</div>
+            <div class="result-text"><span class="hd"># NonChalanceApp</span>
+
+Application web de gestion de projets créatifs
+pour agences et freelances.
+
+<span class="hl">## Fonctionnalités</span>
+
+- 🗂️ Gestion de projets et de clients
+- 👥 Espace collaboratif multi-utilisateurs
+- 📊 Tableau de bord analytique
+- 🔐 Authentification sécurisée (JWT)
+- 📱 Interface responsive mobile-first
+
+<span class="hl">## Installation</span>
+
+\`\`\`bash
+git clone https://github.com/.../NonChalanceApp
+npm install
+cp .env.example .env
+npm run dev
+\`\`\`
+
+<span class="hl">## Stack technique</span>
+
+Node.js · Express · MariaDB · Vanilla JS
+
+<span class="dm">→ Sauvegarde dans docs/README.md</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POC 3 -->
+      <div class="poc-card">
+        <div class="poc-head">
+          <div class="poc-num">3</div>
+          <div class="poc-meta">
+            <h3>Rédiger un changelog depuis les derniers commits</h3>
+            <p>Changelog lisible pour les clients et non-techniciens.</p>
+          </div>
+        </div>
+        <div class="poc-body">
+          <div class="poc-side">
+            <div class="poc-label">Tu tapes dans Claude</div>
+            <div class="prompt-text" style="position:relative">
+              <button class="copy-btn" onclick="copyPoc(this)">Copier</button>Regarde les 20 derniers commits git et génère un changelog clair pour nos clients. Style : simple, sans jargon technique, daté.</div>
+          </div>
+          <div class="poc-side">
+            <div class="poc-label result">Claude génère</div>
+            <div class="result-text"><span class="hd">📋 Mises à jour NonChalanceApp</span>
+
+<span class="hl">Mai 2026</span>
+
+<span class="ok">✦</span> Nouvelle page profil avec photo et bio
+<span class="ok">✦</span> Les notifications arrivent maintenant en temps réel
+<span class="ok">✦</span> Amélioration vitesse de chargement (-40 %)
+<span class="ok">✦</span> Correction du bug d'affichage sur iPhone
+
+<span class="hl">Avril 2026</span>
+
+<span class="ok">✦</span> Ajout du module "Devis" avec export PDF
+<span class="ok">✦</span> Connexion Google disponible
+<span class="wn">⚠</span> Maintenance base de données (2h d'indispo)
+
+<span class="dm">→ Sauvegarde dans docs/CHANGELOG.md</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POC 4 -->
+      <div class="poc-card">
+        <div class="poc-head">
+          <div class="poc-num">4</div>
+          <div class="poc-meta">
+            <h3>Proposer des améliorations UX sans coder</h3>
+            <p>Analyser le code existant pour identifier des points d'amélioration.</p>
+          </div>
+        </div>
+        <div class="poc-body">
+          <div class="poc-side">
+            <div class="poc-label">Tu tapes dans Claude</div>
+            <div class="prompt-text" style="position:relative">
+              <button class="copy-btn" onclick="copyPoc(this)">Copier</button>Analyse le parcours de connexion dans le code. Identifie 3 points d'amélioration UX concrets et rédige-les sous forme de tickets pour l'équipe dev.</div>
+          </div>
+          <div class="poc-side">
+            <div class="poc-label result">Claude génère</div>
+            <div class="result-text"><span class="hd">🎫 3 tickets UX — Parcours connexion</span>
+
+<span class="hl">[UX-01] Message d'erreur trop vague</span>
+Actuel : "Identifiants incorrects"
+Suggestion : "Email ou mot de passe incorrect.
+Mot de passe oublié ? → [lien reset]"
+Priorité : haute · Effort : faible
+
+<span class="hl">[UX-02] Pas de feedback visuel pendant chargement</span>
+La page freeze pendant ~800ms sans spinner.
+Suggestion : loader animé sur le bouton.
+Priorité : moyenne · Effort : faible
+
+<span class="hl">[UX-03] Redirection post-login générique</span>
+Renvoie toujours vers /dashboard même si
+l'utilisateur venait d'une autre page.
+Suggestion : mémoriser l'URL d'origine.
+Priorité : haute · Effort : moyen
+
+<span class="dm">→ Sauvegarde dans docs/tickets/UX-login.md</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section>
+    <h2>Comment ça marche — en pratique</h2>
+    <div class="workflow">
+      <div class="wf-step">
+        <div class="wf-left"><div class="wf-num">1</div><div class="wf-line"></div></div>
+        <div class="wf-body">
+          <h4>Installe Claude Code (profil NonChalance)</h4>
+          <p>Le script clone automatiquement le repo en <strong>lecture seule</strong> sur ton ordi. Tu ne peux pas modifier le code source.</p>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-left"><div class="wf-num">2</div><div class="wf-line"></div></div>
+        <div class="wf-body">
+          <h4>Ouvre le dossier du projet</h4>
+          <p>Dans ton terminal : <code>cd ~/NonChalanceApp && claude</code></p>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-left"><div class="wf-num">3</div><div class="wf-line"></div></div>
+        <div class="wf-body">
+          <h4>Pose tes questions en français</h4>
+          <p>Claude lit le code réel du projet et te répond. Aucune compétence technique requise.</p>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-left"><div class="wf-num">4</div></div>
+        <div class="wf-body">
+          <h4>Sauvegarde dans docs/ et propose via PR</h4>
+          <p>Enregistre la doc générée dans <code>docs/</code>, puis propose via une Pull Request GitHub. Arthur review et merge.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Installation -->
+  <div class="install-cta">
+    <h3>Prêt à générer de la doc ?</h3>
+    <p>Installation en 5 minutes. Le script fait tout.</p>
+    <div class="install-tabs">
+      <button class="os-tab active" id="tab-win" onclick="switchOS('win')">⊞ Windows</button>
+      <button class="os-tab" id="tab-mac" onclick="switchOS('mac')">⌘ macOS</button>
+    </div>
+    <div id="cmd-win" class="cmd-install">
+      <code id="win-cmd">Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://tempcestlouisquirac.fr/claudeboost/downloads/install-nonchalance.ps1 | iex</code>
+      <button class="cmd-copy" onclick="copyInstall('win-cmd', this)">Copier</button>
+    </div>
+    <div id="cmd-mac" class="cmd-install" style="display:none">
+      <code id="mac-cmd">curl -L --progress-bar https://tempcestlouisquirac.fr/claudeboost/downloads/install-nonchalance.sh -o /tmp/install-nc.sh && bash /tmp/install-nc.sh</code>
+      <button class="cmd-copy" onclick="copyInstall('mac-cmd', this)">Copier</button>
+    </div>
+    <div style="margin-top:16px;font-size:0.82rem;color:var(--muted)">
+      Besoin d'aide ? → <a href="/claudeboost/tuto.html">Tuto pas à pas</a>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Claude Boost · NonChalance × Claude · 2026 ·
+  <a href="/claudeboost/">← Accueil</a>
+</footer>
+
+<script>
+function switchOS(os) {
+  document.getElementById('cmd-win').style.display = os==='win'?'flex':'none';
+  document.getElementById('cmd-mac').style.display = os==='mac'?'flex':'none';
+  document.getElementById('tab-win').className = 'os-tab'+(os==='win'?' active':'');
+  document.getElementById('tab-mac').className = 'os-tab'+(os==='mac'?' active':'');
+}
+function copyPoc(btn) {
+  const box = btn.closest('.prompt-text');
+  const text = box.textContent.replace('Copier','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✓'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent='Copier'; btn.classList.remove('ok'); },1800);
+  });
+}
+function copyInstall(id, btn) {
+  navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>{
+    btn.textContent='✓ Copié'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent='Copier'; btn.classList.remove('ok'); },2000);
+  });
+}
+if (/Mac|iPhone|iPad/.test(navigator.userAgent)) switchOS('mac');
+</script>
+</body>
+</html>
