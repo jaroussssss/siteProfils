@@ -30,12 +30,21 @@ jobs:
             npm ci --omit=dev --silent 2>/dev/null || true
             mkdir -p tmp && touch tmp/restart.txt
 
-            # Synchroniser ClaudeBoost (site statique servi par Passenger)
+            # Synchroniser ClaudeBoost
             mkdir -p ~/ClaudeBoost/public/downloads
             cp ~/SiteProfils/public/claudeboost/index.html ~/ClaudeBoost/public/
             cp ~/SiteProfils/public/claudeboost/downloads/* ~/ClaudeBoost/public/downloads/
-            mkdir -p ~/ClaudeBoost/tmp && touch ~/ClaudeBoost/tmp/restart.txt
 
+            # server.js ClaudeBoost — static pur sans catch-all
+            cat > ~/ClaudeBoost/server.js << 'SERVEREOF'
+const express = require("express");
+const path = require("path");
+const app = express();
+app.use(express.static(path.join(__dirname, "public")));
+app.listen(process.env.PORT || "passenger");
+SERVEREOF
+
+            mkdir -p ~/ClaudeBoost/tmp && touch ~/ClaudeBoost/tmp/restart.txt
             echo "Deploy OK $(date)"
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
