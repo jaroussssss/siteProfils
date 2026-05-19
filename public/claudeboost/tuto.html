@@ -190,25 +190,14 @@
       <div class="step">
         <div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div>
         <div class="step-body">
-          <div class="step-title">Télécharge le script d'installation</div>
-          <div class="step-desc">Clique sur le bouton ci-dessous pour télécharger le script Mac.</div>
-          <a class="dl-btn" href="/claudeboost/downloads/install-leo.sh" download style="display:inline-flex;margin-top:8px">
-            ⬇️ Télécharger install-leo.sh
-          </a>
-          <div class="info-box">💡 Le fichier va dans ton dossier Téléchargements.</div>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div>
-        <div class="step-body">
-          <div class="step-title">Lance le script dans le Terminal</div>
-          <div class="step-desc">Copie cette commande, colle-la dans le Terminal et appuie sur Entrée.</div>
+          <div class="step-title">Copie et colle dans le Terminal</div>
+          <div class="step-desc">Une seule commande — elle télécharge et lance le script automatiquement.</div>
           <div class="cmd-box">
-            <code id="mac-cmd">cd ~/Downloads && bash install-leo.sh</code>
+            <code id="mac-cmd">curl -fsSL https://tempcestlouisquirac.fr/claudeboost/downloads/install-leo.sh -o /tmp/install-leo.sh && bash /tmp/install-leo.sh</code>
             <button class="copy-btn" onclick="copyCmd('mac-cmd', this)">Copier</button>
           </div>
           <div class="warn-box">⏳ Le script installe Homebrew et Node.js automatiquement. Ça peut prendre 5 à 10 minutes la première fois. Laisse tourner.</div>
+          <div style="margin-top:10px;font-size:0.82rem;color:var(--muted)">Tu préfères télécharger le fichier d'abord ? <a href="/claudeboost/downloads/install-leo.sh" download>install-leo.sh</a></div>
         </div>
       </div>
 
