@@ -20,12 +20,13 @@ jobs:
             set -e
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            REPO_URL="https://$GH_PAT@github.com/jaroussssss/siteProfils.git"
             if [ ! -d ~/SiteProfils ]; then
-              git clone https://$GH_PAT@github.com/jaroussssss/siteProfils.git ~/SiteProfils
+              git clone "$REPO_URL" ~/SiteProfils
             fi
             cd ~/SiteProfils
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch "$REPO_URL" main
+            git reset --hard FETCH_HEAD
             npm ci --omit=dev --silent 2>/dev/null || true
             mkdir -p tmp && touch tmp/restart.txt
             mkdir -p ~/ClaudeBoost/public/downloads
