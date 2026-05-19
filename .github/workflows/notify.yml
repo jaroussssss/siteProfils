@@ -1,0 +1,35 @@
+name: Notify collaborators on deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/claudeboost/**"
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send update email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APPPASS }}
+          subject: "Claude Boost — Mise à jour disponible"
+          to: Leoderoudilhe@gmail.com,Louis.barbier@essec.edu,nicolaspiroux6@gmail.com
+          from: Claude Boost <${{ secrets.GMAIL_USER }}>
+          body: |
+            Le site Claude Boost vient d'être mis à jour.
+
+            Voir les nouveautés :
+            https://tempcestlouisquirac.fr/claudeboost/
+
+            Pages disponibles :
+            - Accueil : https://tempcestlouisquirac.fr/claudeboost/
+            - Tuto    : https://tempcestlouisquirac.fr/claudeboost/tuto.html
+            - Guide   : https://tempcestlouisquirac.fr/claudeboost/guide.html
+            - Demos   : https://tempcestlouisquirac.fr/claudeboost/demos.html
+
+            Notification automatique Claude Boost
