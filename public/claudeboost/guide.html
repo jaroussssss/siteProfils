@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guide Claude Boost — Pour les non-devs</title>
+  <style>
+    :root {
+      --bg: #0f0f13; --surface: #1a1a24; --border: #2a2a3a;
+      --accent: #7c6af7; --accent2: #4fd1c5; --text: #e8e8f0; --muted: #888;
+      --green: #4ade80; --yellow: #fbbf24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', sans-serif; line-height: 1.7; }
+    a { color: var(--accent); }
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; }
+    .topbar a { color: var(--muted); font-size: 0.88rem; text-decoration: none; }
+    .topbar a:hover { color: var(--text); }
+    .topbar span { color: var(--border); }
+    header { padding: 60px 24px 40px; text-align: center; }
+    header h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    header p { color: var(--muted); margin-top: 10px; font-size: 1.05rem; }
+    main { max-width: 860px; margin: 0 auto; padding: 20px 24px 80px; }
+    section { margin-bottom: 56px; }
+    h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 24px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }
+
+    /* Usecases */
+    .usecases { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .usecase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+    .usecase-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .usecase-desc { color: var(--muted); font-size: 0.88rem; margin-bottom: 12px; }
+    .usecase-example { background: rgba(124,106,247,0.08); border: 1px solid rgba(124,106,247,0.2); border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; color: #bbb; font-style: italic; }
+    .usecase-example::before { content: '💬 '; }
+
+    /* Prompts */
+    .prompt-list { display: flex; flex-direction: column; gap: 12px; }
+    .prompt-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; display: flex; gap: 16px; align-items: flex-start; }
+    .prompt-item code { background: rgba(124,106,247,0.12); color: var(--accent2); border-radius: 6px; padding: 6px 10px; font-size: 0.85rem; line-height: 1.5; flex: 1; display: block; cursor: pointer; }
+    .prompt-item code:hover { background: rgba(124,106,247,0.2); }
+    .prompt-result { color: var(--muted); font-size: 0.82rem; margin-top: 6px; }
+
+    /* Agents */
+    .agents-box { background: linear-gradient(135deg, rgba(124,106,247,0.08), rgba(79,209,197,0.05)); border: 1px solid rgba(124,106,247,0.25); border-radius: 14px; padding: 28px; }
+    .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; }
+    .agent-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; }
+    .agent-pill strong { color: var(--accent); }
+
+    /* FAQ */
+    .faq-list { display: flex; flex-direction: column; gap: 16px; }
+    .faq-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .faq-q { background: var(--surface); padding: 14px 18px; font-weight: 600; font-size: 0.95rem; }
+    .faq-a { padding: 14px 18px; color: var(--muted); font-size: 0.9rem; }
+
+    /* Install steps */
+    .steps { display: flex; flex-direction: column; gap: 20px; }
+    .step { display: flex; gap: 16px; }
+    .step-num { width: 36px; height: 36px; min-width: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .step-body h3 { margin-bottom: 4px; }
+    .step-body p { color: var(--muted); font-size: 0.9rem; }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 0.83rem; color: var(--accent2); margin-top: 10px; overflow-x: auto; }
+
+    footer { text-align: center; padding: 32px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/claudeboost/">← Claude Boost</a>
+  <span>›</span>
+  <span style="color:var(--text)">Guide non-dev</span>
+</div>
+
+<header>
+  <h1>Guide pour non-devs</h1>
+  <p>Tout ce que tu peux faire avec Claude Code, sans avoir besoin de coder.</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>Installation en 3 minutes</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Ouvre PowerShell en administrateur</h3>
+          <p>Touche Windows → tape "PowerShell" → clic droit → "Exécuter en tant qu'administrateur"</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Colle la commande depuis le site</h3>
+          <p>Reviens sur cette page, clique "Copier" sur ton profil, et colle dans PowerShell.</p>
+          <pre>Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://tempcestlouisquirac.fr/claudeboost/downloads/install-leo.ps1 | iex</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Configure ta clé API</h3>
+          <p>Lance Claude Code (<code>claude</code>), tape <code>/config</code> et entre ta clé Anthropic depuis <a href="https://console.anthropic.com/settings/api-keys" target="_blank">console.anthropic.com</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="usecases">
+    <h2>Ce que tu peux faire</h2>
+    <div class="usecases" id="usecases-grid">
+      <!-- Rempli par l'agent -->
+      <div class="usecase-card">
+        <div class="usecase-icon">✍️</div>
+        <h4>Rédaction</h4>
+        <p class="usecase-desc">Emails, descriptions, posts, rapports — rédigés en secondes.</p>
+        <div class="usecase-example">Rédige un email professionnel pour reporter une réunion avec un client</div>
+      </div>
+      <div class="usecase-card">
+        <div class="usecase-icon">📊</div>
+        <h4>Analyse de documents</h4>
+        <p class="usecase-desc">Colle n'importe quel texte, Claude l'analyse, résume et répond à tes questions.</p>
+        <div class="usecase-example">Résume ce contrat en 5 points clés et dis-moi si je dois faire attention à quelque chose</div>
+      </div>
+      <div class="usecase-card">
+        <div class="usecase-icon">📅</div>
+        <h4>Organisation & planning</h4>
+        <p class="usecase-desc">Planifie ta semaine, priorise des tâches, organise des projets.</p>
+        <div class="usecase-example">J'ai ces 10 tâches à faire cette semaine, crée un planning réaliste sur 5 jours</div>
+      </div>
+      <div class="usecase-card">
+        <div class="usecase-icon">🎨</div>
+        <h4>Contenu marketing</h4>
+        <p class="usecase-desc">Posts réseaux sociaux, fiches produit, slogans, descriptions.</p>
+        <div class="usecase-example">Crée 5 variations de posts Instagram pour lancer notre nouveau produit</div>
+      </div>
+      <div class="usecase-card">
+        <div class="usecase-icon">🤖</div>
+        <h4>Conseil multi-agents</h4>
+        <p class="usecase-desc">Lance plusieurs Claude en parallèle sur un problème complexe.</p>
+        <div class="usecase-example">Lance un conseil d'experts pour analyser notre stratégie commerciale et donne-moi 3 recommandations</div>
+      </div>
+      <div class="usecase-card">
+        <div class="usecase-icon">🔍</div>
+        <h4>Recherche & veille</h4>
+        <p class="usecase-desc">Analyse des tendances, compare des options, synthétise des infos.</p>
+        <div class="usecase-example">Compare les 3 meilleures solutions SaaS pour gérer les devis clients, prix et fonctionnalités</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="prompts">
+    <h2>5 prompts à essayer maintenant</h2>
+    <p style="color:var(--muted);margin-bottom:20px;font-size:0.9rem">Copie-colle directement dans Claude Code ↓</p>
+    <div class="prompt-list">
+      <div class="prompt-item">
+        <div style="flex:1">
+          <code onclick="navigator.clipboard.writeText(this.textContent)">Rédige un email de relance client après 2 semaines sans réponse, ton professionnel mais chaleureux. Objet : suivi de notre proposition</code>
+          <div class="prompt-result">→ Email prêt à envoyer en 10 secondes</div>
+        </div>
+      </div>
+      <div class="prompt-item">
+        <div style="flex:1">
+          <code onclick="navigator.clipboard.writeText(this.textContent)">Voici mon planning de la semaine : [colle tes tâches]. Priorise-les par urgence et impact, et estime le temps pour chacune.</code>
+          <div class="prompt-result">→ Planning structuré et priorisé</div>
+        </div>
+      </div>
+      <div class="prompt-item">
+        <div style="flex:1">
+          <code onclick="navigator.clipboard.writeText(this.textContent)">Transforme ce texte en 3 posts LinkedIn engageants avec emojis et appel à l'action : [colle ton texte]</code>
+          <div class="prompt-result">→ 3 versions LinkedIn prêtes à publier</div>
+        </div>
+      </div>
+      <div class="prompt-item">
+        <div style="flex:1">
+          <code onclick="navigator.clipboard.writeText(this.textContent)">Je dois prendre une décision : [décris ta situation]. Joue le rôle d'un consultant et donne-moi les pour, les contre et ta recommandation.</code>
+          <div class="prompt-result">→ Analyse structurée pour t'aider à décider</div>
+        </div>
+      </div>
+      <div class="prompt-item">
+        <div style="flex:1">
+          <code onclick="navigator.clipboard.writeText(this.textContent)">Crée un tableau de bord mensuel pour suivre [ton projet] avec les métriques clés, objectifs et indicateurs de succès.</code>
+          <div class="prompt-result">→ Template complet à remplir</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="agents">
+    <h2>Le conseil d'agents 🤖</h2>
+    <div class="agents-box">
+      <p>Le conseil d'agents, c'est comme avoir <strong>plusieurs experts qui travaillent en parallèle</strong> sur ton problème. Pendant qu'un analyste cherche, un stratège réfléchit, et un rédacteur rédige — tout en même temps. Le résultat arrive plus vite et est plus complet qu'avec un seul assistant.</p>
+      <div style="margin-top:16px;color:var(--muted);font-size:0.9rem">
+        <strong style="color:var(--text)">Exemples à taper dans Claude Code :</strong>
+      </div>
+      <div class="agents-grid">
+        <div class="agent-pill">
+          <strong>Stratégie</strong><br>
+          <span style="color:var(--muted);font-size:0.82rem">"Lance 3 agents : un analyste marché, un financier et un marketeur pour évaluer ce projet"</span>
+        </div>
+        <div class="agent-pill">
+          <strong>Revue de document</strong><br>
+          <span style="color:var(--muted);font-size:0.82rem">"Lance un agent juridique et un agent commercial pour relire ce contrat en parallèle"</span>
+        </div>
+        <div class="agent-pill">
+          <strong>Brainstorming</strong><br>
+          <span style="color:var(--muted);font-size:0.82rem">"5 agents avec des points de vue différents sur comment améliorer notre service client"</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>Questions fréquentes</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">C'est quoi Claude Code exactement ?</div>
+        <div class="faq-a">C'est un assistant IA d'Anthropic (les créateurs de Claude) qui tourne dans ton terminal. Contrairement à l'interface web, il peut accéder à tes fichiers locaux, envoyer des emails, interagir avec GitHub, et bien plus. Claude Boost est un setup préconfiguré qui le rend immédiatement utile.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Est-ce que j'ai besoin de savoir programmer ?</div>
+        <div class="faq-a">Non. Tu parles à Claude comme tu parlerais à un collègue. Tu décris ce que tu veux en français, il s'en occupe. Les scripts d'installation font tout le setup technique pour toi.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Combien ça coûte ?</div>
+        <div class="faq-a">Claude Boost est gratuit. Tu paies uniquement l'utilisation de l'API Anthropic — environ 0,003€ par message simple. Pour un usage bureautique normal (20-30 messages/jour), compte moins de 5€/mois. Bien moins qu'un abonnement ChatGPT.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Mes données sont-elles sécurisées ?</div>
+        <div class="faq-a">Les conversations passent par l'API Anthropic (chiffrées en transit). Anthropic ne vend pas tes données. Pour des informations vraiment confidentielles, évite de les coller directement dans les prompts.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Je tape "claude" mais rien ne se passe ?</div>
+        <div class="faq-a">Deux choses à vérifier : 1) Ouvre un <strong>nouveau</strong> terminal après l'installation (l'ancien ne connaît pas encore la commande). 2) Assure-toi que ta clé API est configurée via <code>/config</code> dans Claude Code.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Claude Boost · par <a href="https://github.com/jaroussssss">jaroussssss</a> · 2026 ·
+  <a href="/claudeboost/">← Retour à l'accueil</a>
+</footer>
+
+</body>
+</html>
