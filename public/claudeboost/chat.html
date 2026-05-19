@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NonChalance AI — Assistant Documentation</title>
+  <style>
+    :root {
+      --bg: #0f0f13; --surface: #1a1a24; --surface2: #21212e;
+      --border: #2a2a3a; --accent: #7c6af7; --accent2: #4fd1c5;
+      --text: #e8e8f0; --muted: #888; --green: #4ade80;
+      --nc: #e07a5f; --nc2: #f2cc8f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', sans-serif; display: flex; flex-direction: column; }
+
+    /* Header */
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .header-logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--nc), var(--nc2)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .header-info h1 { font-size: 1rem; font-weight: 700; }
+    .header-info p { font-size: 0.75rem; color: var(--muted); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-left: auto; box-shadow: 0 0 6px var(--green); animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+    .status-label { font-size: 0.72rem; color: var(--green); margin-left: 6px; }
+
+    /* Context bar */
+    .context-bar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 20px; display: flex; align-items: center; gap: 10px; font-size: 0.78rem; color: var(--muted); flex-shrink: 0; }
+    .context-pill { background: rgba(124,106,247,0.12); border: 1px solid rgba(124,106,247,0.25); border-radius: 99px; padding: 3px 10px; color: var(--accent); font-size: 0.72rem; }
+    .context-pill.nc { background: rgba(224,122,95,0.12); border-color: rgba(224,122,95,0.25); color: var(--nc); }
+
+    /* Quick prompts */
+    .quick-prompts { padding: 10px 20px; display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+    .quick-prompts::-webkit-scrollbar { height: 3px; }
+    .quick-prompts::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .qp-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 0.78rem; color: var(--text); cursor: pointer; white-space: nowrap; transition: .15s; flex-shrink: 0; }
+    .qp-btn:hover { border-color: var(--nc); color: var(--nc); }
+
+    /* Messages */
+    .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .msg { display: flex; gap: 10px; max-width: 80%; }
+    .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+    .msg.assistant .msg-avatar { background: linear-gradient(135deg, var(--nc), var(--nc2)); }
+    .msg.user .msg-avatar { background: var(--accent); }
+    .msg-bubble { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px; font-size: 0.88rem; line-height: 1.6; }
+    .msg.user .msg-bubble { background: rgba(124,106,247,0.12); border-color: rgba(124,106,247,0.25); }
+    .msg-bubble pre { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 0.78rem; overflow-x: auto; margin: 8px 0; white-space: pre-wrap; }
+    .msg-bubble code { background: var(--surface2); padding: 1px 5px; border-radius: 4px; font-size: 0.82em; }
+    .msg-time { font-size: 0.65rem; color: var(--muted); margin-top: 4px; text-align: right; }
+
+    /* Typing indicator */
+    .typing { display: none; align-items: center; gap: 10px; padding: 0 20px 10px; }
+    .typing.visible { display: flex; }
+    .typing-dots { display: flex; gap: 4px; }
+    .typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--nc); animation: bounce 1.2s ease-in-out infinite; }
+    .typing-dots span:nth-child(2) { animation-delay: .2s; }
+    .typing-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+    .typing-text { font-size: 0.75rem; color: var(--muted); }
+
+    /* Input */
+    .input-area { border-top: 1px solid var(--border); padding: 14px 20px; display: flex; gap: 10px; flex-shrink: 0; background: var(--surface); }
+    .input-wrap { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: flex-end; gap: 8px; padding: 10px 14px; transition: border-color .2s; }
+    .input-wrap:focus-within { border-color: var(--nc); }
+    textarea { flex: 1; background: none; border: none; outline: none; color: var(--text); font-family: inherit; font-size: 0.9rem; resize: none; line-height: 1.5; max-height: 120px; }
+    textarea::placeholder { color: var(--muted); }
+    .send-btn { background: linear-gradient(135deg, var(--nc), var(--nc2)); border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: opacity .2s; }
+    .send-btn:hover { opacity: 0.85; }
+    .send-btn:disabled { opacity: 0.4; cursor: default; }
+    .send-btn svg { width: 16px; height: 16px; fill: white; }
+
+    /* Config modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: min(480px, 90vw); }
+    .modal h2 { font-size: 1.1rem; margin-bottom: 20px; }
+    .modal label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+    .modal input, .modal textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-family: inherit; font-size: 0.88rem; outline: none; margin-bottom: 16px; }
+    .modal input:focus, .modal textarea:focus { border-color: var(--accent); }
+    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 18px; cursor: pointer; font-size: 0.88rem; }
+    .btn-save { background: var(--accent); border: none; color: #fff; border-radius: 8px; padding: 9px 18px; cursor: pointer; font-size: 0.88rem; font-weight: 600; }
+    .config-btn { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 0.78rem; margin-left: auto; }
+    .config-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* Placeholder state */
+    .placeholder { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .placeholder-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .placeholder h3 { font-size: 1rem; color: var(--text); margin-bottom: 8px; }
+    .placeholder p { font-size: 0.85rem; }
+
+    /* Warning banner */
+    .warning { background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.25); border-radius: 10px; padding: 12px 16px; margin: 0 20px 16px; font-size: 0.82rem; color: #fde68a; display: none; }
+    .warning.visible { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- Config Modal -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal">
+    <h2>⚙️ Configuration API</h2>
+    <label>Clé API Anthropic</label>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-..." />
+    <label>URL du serveur Claude (optionnel)</label>
+    <input type="text" id="serverUrl" placeholder="https://votre-serveur.com/api/claude" />
+    <label>Contexte système (personnalisation)</label>
+    <textarea id="systemPrompt" rows="4" placeholder="Tu es un assistant spécialisé dans la documentation de NonChalanceApp..."></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeConfig()">Annuler</button>
+      <button class="btn-save" onclick="saveConfig()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">🎨</div>
+  <div class="header-info">
+    <h1>NonChalance AI</h1>
+    <p>Assistant documentation • Mode lecture seule</p>
+  </div>
+  <div class="status-dot" id="statusDot"></div>
+  <span class="status-label" id="statusLabel">Prêt</span>
+  <button class="config-btn" onclick="openConfig()">⚙️ Config</button>
+</div>
+
+<!-- Context bar -->
+<div class="context-bar">
+  <span>Connecté à :</span>
+  <span class="context-pill nc">🎨 NonChalanceApp</span>
+  <span class="context-pill">🔒 Lecture seule</span>
+  <span class="context-pill">📝 Docs uniquement</span>
+</div>
+
+<!-- Quick prompts -->
+<div class="quick-prompts">
+  <button class="qp-btn" onclick="sendQuick(this)">📖 Explique l'authentification</button>
+  <button class="qp-btn" onclick="sendQuick(this)">📋 Génère le README</button>
+  <button class="qp-btn" onclick="sendQuick(this)">📝 Changelog pour les clients</button>
+  <button class="qp-btn" onclick="sendQuick(this)">🎫 Tickets UX à améliorer</button>
+  <button class="qp-btn" onclick="sendQuick(this)">📊 Résume l'architecture</button>
+  <button class="qp-btn" onclick="sendQuick(this)">🔍 Qu'est-ce que cette fonction fait ?</button>
+</div>
+
+<!-- Warning -->
+<div class="warning" id="warningBanner">
+  ⚠️ Aucune clé API configurée. Clique sur ⚙️ Config pour entrer ta clé Anthropic ou l'URL de ton serveur.
+</div>
+
+<!-- Messages -->
+<div class="messages" id="messages">
+  <div class="placeholder" id="placeholder">
+    <div class="placeholder-icon">🎨</div>
+    <h3>NonChalance AI — Assistant Documentation</h3>
+    <p>Pose-moi des questions sur le projet en français.<br>Je lis le code pour toi — tu n'écris pas une ligne.</p>
+  </div>
+</div>
+
+<!-- Typing -->
+<div class="typing" id="typing">
+  <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--nc),var(--nc2));display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0">🎨</div>
+  <div>
+    <div class="typing-dots"><span></span><span></span><span></span></div>
+    <div class="typing-text">Claude réfléchit...</div>
+  </div>
+</div>
+
+<!-- Input -->
+<div class="input-area">
+  <div class="input-wrap">
+    <textarea id="input" placeholder="Pose ta question en français..." rows="1"
+      onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Envoyer">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+let config = {
+  apiKey: localStorage.getItem('nc_apikey') || '',
+  serverUrl: localStorage.getItem('nc_serverurl') || '',
+  systemPrompt: localStorage.getItem('nc_system') ||
+    `Tu es l'assistant documentation de NonChalanceApp.
+Tu aides les collaborateurs non-techniques à comprendre le projet et à générer de la documentation.
+Tu réponds UNIQUEMENT en français, avec un langage simple et accessible.
+Tu ne modifies jamais le code source. Tu génères uniquement de la documentation (README, changelog, tickets, guides).
+Le projet est une app web de gestion créative pour agences.`,
+};
+
+function openConfig() {
+  document.getElementById('apiKeyInput').value = config.apiKey;
+  document.getElementById('serverUrl').value = config.serverUrl;
+  document.getElementById('systemPrompt').value = config.systemPrompt;
+  document.getElementById('configModal').classList.add('open');
+}
+function closeConfig() { document.getElementById('configModal').classList.remove('open'); }
+function saveConfig() {
+  config.apiKey = document.getElementById('apiKeyInput').value.trim();
+  config.serverUrl = document.getElementById('serverUrl').value.trim();
+  config.systemPrompt = document.getElementById('systemPrompt').value.trim();
+  localStorage.setItem('nc_apikey', config.apiKey);
+  localStorage.setItem('nc_serverurl', config.serverUrl);
+  localStorage.setItem('nc_system', config.systemPrompt);
+  closeConfig();
+  updateStatus();
+  document.getElementById('warningBanner').classList.remove('visible');
+}
+
+function updateStatus() {
+  const dot = document.getElementById('statusDot');
+  const label = document.getElementById('statusLabel');
+  if (config.apiKey || config.serverUrl) {
+    dot.style.background = 'var(--green)';
+    label.style.color = 'var(--green)';
+    label.textContent = config.serverUrl ? 'Serveur connecté' : 'API Anthropic';
+  } else {
+    dot.style.background = 'var(--nc)';
+    label.style.color = 'var(--nc)';
+    label.textContent = 'Non configuré';
+    document.getElementById('warningBanner').classList.add('visible');
+  }
+}
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+const history = [];
+
+function addMessage(role, content) {
+  const container = document.getElementById('messages');
+  document.getElementById('placeholder')?.remove();
+
+  const time = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+
+  const avatar = role === 'user' ? '👤' : '🎨';
+  const html = formatContent(content);
+
+  div.innerHTML = `
+    <div class="msg-avatar">${avatar}</div>
+    <div>
+      <div class="msg-bubble">${html}</div>
+      <div class="msg-time">${time}</div>
+    </div>`;
+
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  history.push({ role: role === 'user' ? 'user' : 'assistant', content });
+}
+
+function formatContent(text) {
+  // Markdown basique
+  text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  text = text.replace(/\n/g, '<br>');
+  return text;
+}
+
+// ── Send ──────────────────────────────────────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!config.apiKey && !config.serverUrl) {
+    openConfig();
+    return;
+  }
+
+  input.value = '';
+  autoResize(input);
+  addMessage('user', text);
+
+  document.getElementById('typing').classList.add('visible');
+  document.getElementById('sendBtn').disabled = true;
+
+  try {
+    let reply;
+    if (config.serverUrl) {
+      // Appel vers serveur custom (à brancher sur ton Claude server)
+      const res = await fetch(config.serverUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: history,
+          system: config.systemPrompt,
+        }),
+      });
+      const data = await res.json();
+      reply = data.content || data.message || data.reply || JSON.stringify(data);
+    } else {
+      // Appel direct Anthropic API
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': config.apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-calls': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 2048,
+          system: config.systemPrompt,
+          messages: history,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      reply = data.content?.[0]?.text || 'Pas de réponse';
+    }
+    addMessage('assistant', reply);
+  } catch (err) {
+    addMessage('assistant', `❌ Erreur : ${err.message}\n\nVérifie ta clé API dans ⚙️ Config.`);
+  } finally {
+    document.getElementById('typing').classList.remove('visible');
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('input').focus();
+  }
+}
+
+function sendQuick(btn) {
+  document.getElementById('input').value = btn.textContent.replace(/^[^\s]+\s/, '').trim();
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+updateStatus();
+</script>
+</body>
+</html>
