@@ -3,6 +3,7 @@ name: Deploy → main
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -20,13 +21,13 @@ jobs:
             set -e
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-            if [ ! -d ~/siteprofils ]; then
-              git clone https://$GH_PAT@github.com/jaroussssss/siteProfils.git ~/siteprofils
-            fi
-            cd ~/siteprofils
-            git pull https://$GH_PAT@github.com/jaroussssss/siteProfils.git main
-            npm ci --omit=dev --silent 2>/dev/null || true
-            pm2 restart siteprofils 2>/dev/null || pm2 start server.js --name siteprofils
-            echo "Done $(date)"
+            echo "=== PM2 STATUS ==="
+            pm2 list 2>&1 || echo "PM2 absent"
+            echo "=== PM2 LOGS (10 dernières lignes) ==="
+            pm2 logs siteprofils --nostream --lines 10 2>&1 || echo "Pas de logs"
+            echo "=== FILES ==="
+            ls ~/siteprofils/public/claudeboost/ 2>&1 || echo "Dossier absent"
+            echo "=== ROUTE CHECK ==="
+            grep -n "claudeboost\|/:link" ~/siteprofils/server.js 2>&1 | head -5 || echo "Fichier absent"
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
