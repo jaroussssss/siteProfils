@@ -66,12 +66,40 @@
 <body>
 
 <div class="topbar">
-  <a href="/claudeboost/">← Claude Boost</a>
+  <a href="/claudeboost/" style="display:flex;align-items:center;gap:8px">
+    <svg width="22" height="22" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="tg1" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#7c6af7"/><stop offset="100%" stop-color="#4fd1c5"/>
+        </linearGradient>
+      </defs>
+      <rect width="72" height="72" rx="18" fill="url(#tg1)" opacity="0.2"/>
+      <path d="M42 10L24 38h14L30 62l24-30H40L42 10Z" fill="url(#tg1)"/>
+    </svg>
+    Claude Boost
+  </a>
   <span>›</span>
   <span style="color:var(--text)">Guide non-dev</span>
 </div>
 
 <header>
+  <div style="display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px">
+    <svg width="60" height="60" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 16px rgba(124,106,247,0.45))">
+      <defs>
+        <linearGradient id="hg1" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#7c6af7"/><stop offset="100%" stop-color="#4fd1c5"/>
+        </linearGradient>
+        <linearGradient id="hg2" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#9d8fff"/><stop offset="100%" stop-color="#7eeee6"/>
+        </linearGradient>
+      </defs>
+      <rect width="72" height="72" rx="18" fill="url(#hg1)" opacity="0.15"/>
+      <rect width="72" height="72" rx="18" fill="none" stroke="url(#hg1)" stroke-width="1.5"/>
+      <path d="M42 10L24 38h14L30 62l24-30H40L42 10Z" fill="url(#hg2)"/>
+      <circle cx="14" cy="22" r="2.5" fill="#7c6af7" opacity="0.7"/>
+      <circle cx="58" cy="50" r="2.5" fill="#4fd1c5" opacity="0.7"/>
+    </svg>
+  </div>
   <h1>Guide pour non-devs</h1>
   <p>Tout ce que tu peux faire avec Claude Code, sans avoir besoin de coder.</p>
 </header>
