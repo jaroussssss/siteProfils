@@ -20,14 +20,22 @@ jobs:
             set -e
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-            APP_DIR="$HOME/SiteProfils"
-            if [ ! -d "$APP_DIR" ]; then
-              git clone https://$GH_PAT@github.com/jaroussssss/siteProfils.git "$APP_DIR"
+
+            # Mettre a jour SiteProfils
+            if [ ! -d ~/SiteProfils ]; then
+              git clone https://$GH_PAT@github.com/jaroussssss/siteProfils.git ~/SiteProfils
             fi
-            cd "$APP_DIR"
+            cd ~/SiteProfils
             git pull https://$GH_PAT@github.com/jaroussssss/siteProfils.git main
             npm ci --omit=dev --silent 2>/dev/null || true
             mkdir -p tmp && touch tmp/restart.txt
-            echo "SiteProfils deploye $(date)"
+
+            # Synchroniser ClaudeBoost (site statique servi par Passenger)
+            mkdir -p ~/ClaudeBoost/public/downloads
+            cp ~/SiteProfils/public/claudeboost/index.html ~/ClaudeBoost/public/
+            cp ~/SiteProfils/public/claudeboost/downloads/* ~/ClaudeBoost/public/downloads/
+            mkdir -p ~/ClaudeBoost/tmp && touch ~/ClaudeBoost/tmp/restart.txt
+
+            echo "Deploy OK $(date)"
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
