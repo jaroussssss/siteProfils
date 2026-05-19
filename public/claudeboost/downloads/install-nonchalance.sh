@@ -64,8 +64,11 @@ echo "  [1/5] Outils système Apple"
 if xcode-select -p &>/dev/null && [ -e "$(xcode-select -p 2>/dev/null)" ]; then
   ok "Outils système déjà installés"
 else
-  info "Une fenêtre Apple va s'ouvrir. Clique 'Installer' et accepte la licence."
-  info "Ne ferme PAS cette fenêtre du Terminal."
+  info "Une fenêtre Apple va s'ouvrir. Clique 'Installer' et accepte."
+  info "Si tu vois 'Can't install the software' :"
+  info "  → App Store → cherche 'Xcode' → Installer (gratuit, ~15 min)"
+  info "  → Ou : https://developer.apple.com/download/all/ (cherche 'Command Line Tools')"
+  info "  → Puis relance ce script."
   xcode-select --install 2>/dev/null || true
   MAX_WAIT=1200; ELAPSED=0
   while ! xcode-select -p &>/dev/null; do
