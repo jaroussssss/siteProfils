@@ -108,27 +108,77 @@
 
   <section>
     <h2>Installation en 3 minutes</h2>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <h3>Ouvre PowerShell en administrateur</h3>
-          <p>Touche Windows → tape "PowerShell" → clic droit → "Exécuter en tant qu'administrateur"</p>
+
+    <!-- OS tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:24px">
+      <button onclick="showOS('win')" id="tab-win" style="padding:8px 20px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:600;cursor:pointer">⊞ Windows</button>
+      <button onclick="showOS('mac')" id="tab-mac" style="padding:8px 20px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer">⌘ macOS</button>
+    </div>
+
+    <div id="os-win">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Installe Node.js si ce n'est pas déjà fait</h3>
+            <p>Télécharge Node.js 22 LTS sur <a href="https://nodejs.org" target="_blank">nodejs.org</a> → installe → redémarre le terminal.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Ouvre PowerShell en administrateur</h3>
+            <p>Touche Windows → tape <strong>PowerShell</strong> → clic droit → <strong>"Exécuter en tant qu'administrateur"</strong></p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Reviens sur la page d'accueil, clique "Copier" et colle</h3>
+            <p>La commande s'exécute sans télécharger de fichier — aucun blocage Windows.</p>
+            <pre>Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://tempcestlouisquirac.fr/claudeboost/downloads/install-leo.ps1 | iex</pre>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h3>Configure ta clé API</h3>
+            <p>Lance <code>claude</code> dans un terminal, tape <code>/config</code> et entre ta clé depuis <a href="https://console.anthropic.com/settings/api-keys" target="_blank">console.anthropic.com</a>.</p>
+          </div>
         </div>
       </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <h3>Colle la commande depuis le site</h3>
-          <p>Reviens sur cette page, clique "Copier" sur ton profil, et colle dans PowerShell.</p>
-          <pre>Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://tempcestlouisquirac.fr/claudeboost/downloads/install-leo.ps1 | iex</pre>
+    </div>
+
+    <div id="os-mac" style="display:none">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Installe Node.js si ce n'est pas déjà fait</h3>
+            <p>Télécharge Node.js 22 LTS sur <a href="https://nodejs.org" target="_blank">nodejs.org</a>, ou via Homebrew : <code>brew install node</code></p>
+          </div>
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <h3>Configure ta clé API</h3>
-          <p>Lance Claude Code (<code>claude</code>), tape <code>/config</code> et entre ta clé Anthropic depuis <a href="https://console.anthropic.com/settings/api-keys" target="_blank">console.anthropic.com</a>.</p>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Télécharge le script depuis la page d'accueil</h3>
+            <p>Clique <strong>"⌘ macOS — télécharger"</strong> sur ton profil.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Ouvre le Terminal et lance le script</h3>
+            <p>Application → Terminal (ou Spotlight → <code>terminal</code>), puis :</p>
+            <pre>cd ~/Downloads && bash install-leo.sh</pre>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h3>Configure ta clé API</h3>
+            <p>Dans le terminal, tape <code>claude</code> puis <code>/config</code> et entre ta clé depuis <a href="https://console.anthropic.com/settings/api-keys" target="_blank">console.anthropic.com</a>.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -271,5 +321,19 @@
   <a href="/claudeboost/">← Retour à l'accueil</a>
 </footer>
 
+<script>
+function showOS(os) {
+  document.getElementById('os-win').style.display = os === 'win' ? '' : 'none';
+  document.getElementById('os-mac').style.display = os === 'mac' ? '' : 'none';
+  var tw = document.getElementById('tab-win'), tm = document.getElementById('tab-mac');
+  tw.style.background = os==='win'?'var(--accent)':'transparent';
+  tw.style.color = os==='win'?'#fff':'var(--muted)';
+  tw.style.borderColor = os==='win'?'var(--accent)':'var(--border)';
+  tm.style.background = os==='mac'?'var(--accent)':'transparent';
+  tm.style.color = os==='mac'?'#fff':'var(--muted)';
+  tm.style.borderColor = os==='mac'?'var(--accent)':'var(--border)';
+}
+if (navigator.platform.includes('Mac') || navigator.userAgent.includes('Mac')) showOS('mac');
+</script>
 </body>
 </html>
