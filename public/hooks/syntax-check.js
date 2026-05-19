@@ -1,22 +1,28 @@
 /**
- * Hook PostToolUse(Edit|Write) — Vérifie la syntaxe des fichiers JS modifiés.
- * Silencieux si OK, ajoute un warning si erreur de syntaxe.
+ * Hook PostToolUse(Edit|Write) — Vérifie la syntaxe des fichiers JS/MJS/CJS modifiés.
+ * Silencieux si OK. Warning si erreur de syntaxe.
  */
 
-const { execSync } = require('child_process');
-const input = JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8'));
+const { spawnSync } = require('child_process');
+const readStdinJSON = require('./_stdin.js');
+
+const input = readStdinJSON();
+if (!input) process.exit(0);
+
 const filePath = input.file_path || input.path || '';
 
-if (!filePath.endsWith('.js')) {
-  process.exit(0);
-}
+// Vérifier les extensions JS supportées par node --check
+if (!/\.(c|m)?jsx?$/.test(filePath)) process.exit(0);
 
-try {
-  execSync(`node --check "${filePath}"`, { stdio: 'pipe' });
-  // Syntaxe OK — silencieux
-} catch (err) {
-  const msg = (err.stderr || err.stdout || '').toString().slice(0, 200);
-  // Émet un warning visible dans Claude Code
+// spawnSync évite l'interpolation shell (pas de risque injection via filePath)
+const result = spawnSync('node', ['--check', filePath], {
+  encoding: 'utf8',
+  timeout: 10000,
+  stdio: 'pipe',
+});
+
+if (result.status !== 0 || result.error) {
+  const msg = (result.stderr || result.stdout || result.error?.message || '').toString().slice(0, 300);
   console.error(`⚠️  Erreur syntaxe JS dans ${filePath}:\n${msg}`);
-  // Ne bloque pas (exit 0) — juste un avertissement
+  // Ne bloque pas (exit 0) — avertissement uniquement
 }
