@@ -33,6 +33,23 @@ echo "  ║   Claude Code Boost — Profil Leo     ║"
 echo "  ╚══════════════════════════════════════╝"
 echo ""
 
+# ── Répertoire d'installation ─────────────────────────────────────────────────
+DEFAULT_INSTALL="$HOME/ClaudeBoost"
+echo "  Répertoire d'installation proposé :"
+echo "    $DEFAULT_INSTALL"
+echo ""
+printf "  Appuie sur Entrée pour accepter, ou tape un autre chemin : "
+read -r INSTALL_INPUT
+if [ -z "$INSTALL_INPUT" ]; then
+  INSTALL_ROOT="$DEFAULT_INSTALL"
+else
+  # Résoudre ~ manuellement si présent
+  INSTALL_ROOT="${INSTALL_INPUT/#\~/$HOME}"
+fi
+echo ""
+ok "Répertoire d'installation : $INSTALL_ROOT"
+echo ""
+
 # ── 1. Xcode Command Line Tools ───────────────────────────────────────────────
 sep
 echo "  [1/5]  Outils système..."
