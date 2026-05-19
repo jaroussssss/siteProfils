@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>NonChalance × Claude — Générer la doc sans coder</title>
+  <title>NonChalance × Claude — Ton assistant, depuis n'importe où</title>
   <style>
     :root {
       --bg: #1a1410; --bg-2: #211a14; --surface: #26201a; --surface2: #2e271f;
@@ -13,122 +13,141 @@
       --serif: Georgia,'Times New Roman',serif;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', sans-serif; line-height: 1.65; }
+    html, body { overflow-x: hidden; max-width: 100vw; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system,'Segoe UI',sans-serif; line-height: 1.65; }
     h1, h2, h3, h4 { font-family: var(--serif); }
-    a { color: var(--accent2); }
+    a { color: var(--accent2); text-decoration: none; }
 
-    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+    /* ── Topbar ── */
+    .topbar { background: rgba(26,20,16,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
     .topbar a { color: var(--muted); font-size: 0.88rem; text-decoration: none; display: flex; align-items: center; gap: 6px; }
     .topbar a:hover { color: var(--text); }
     .topbar span { color: var(--border); }
 
-    header { padding: 60px 24px 40px; text-align: center; background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%); }
-    .nc-logo { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, var(--nc), var(--nc2)); margin-bottom: 20px; box-shadow: 0 0 32px rgba(224,122,95,0.35); }
-    header h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 700; margin-bottom: 10px; letter-spacing: -0.02em; }
-    header h1 span { background: linear-gradient(135deg, var(--nc), var(--nc2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    header p { color: var(--muted); font-size: 1.05rem; max-width: 560px; margin: 0 auto 20px; }
+    /* ── Hero ── */
+    .hero { padding: 80px 24px 60px; text-align: center; background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(224,122,95,.12) 0%, transparent 70%); pointer-events: none; }
+    .hero-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(224,122,95,.12); border: 1px solid rgba(224,122,95,.3); border-radius: 99px; padding: 6px 16px; font-size: 0.82rem; color: var(--nc2); margin-bottom: 28px; }
+    .hero-tag span { width: 7px; height: 7px; border-radius: 50%; background: var(--nc); box-shadow: 0 0 8px var(--nc); animation: blink 1.8s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .hero h1 { font-size: clamp(2rem, 6vw, 3.6rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 20px; max-width: 800px; margin-inline: auto; }
+    .hero h1 em { font-style: normal; background: linear-gradient(135deg, var(--nc), var(--nc2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { color: var(--muted); font-size: clamp(1rem, 2.5vw, 1.15rem); max-width: 560px; margin: 0 auto 36px; line-height: 1.7; }
+    .hero-stats { display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+    .stat { text-align: center; }
+    .stat-num { font-family: var(--serif); font-size: 2.2rem; font-weight: 700; color: var(--nc2); line-height: 1; }
+    .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--nc); color: #fff; border-radius: 12px; padding: 14px 28px; font-weight: 700; font-size: 1rem; border: none; cursor: pointer; text-decoration: none; transition: opacity .15s; box-shadow: 0 4px 24px rgba(224,122,95,.35); }
+    .btn-primary:hover { opacity: .88; }
+    .btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 24px; color: var(--text); text-decoration: none; font-weight: 600; transition: border-color .15s; }
+    .btn-secondary:hover { border-color: var(--nc); }
 
-    .safety-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: 99px; padding: 6px 16px; font-size: 0.85rem; color: var(--green); margin-bottom: 8px; }
+    /* ── Scenarios ── */
+    main { max-width: 920px; margin: 0 auto; padding: 64px 24px 80px; }
+    .section-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--nc); font-weight: 700; margin-bottom: 12px; }
+    .section-title { font-size: clamp(1.5rem, 3.5vw, 2.1rem); font-weight: 700; margin-bottom: 10px; letter-spacing: -0.02em; }
+    .section-sub { color: var(--muted); font-size: 0.97rem; max-width: 580px; margin-bottom: 36px; line-height: 1.7; }
 
-    main { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
-    section { margin-bottom: 52px; }
-    h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .scenarios { display: flex; flex-direction: column; gap: 20px; margin-bottom: 72px; }
+    .scenario { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; transition: border-color .2s; }
+    .scenario:hover { border-color: rgba(224,122,95,.4); }
+    .scenario-head { padding: 22px 26px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 16px; }
+    .scenario-icon { width: 44px; height: 44px; min-width: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--nc), var(--nc2)); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+    .scenario-meta { flex: 1; }
+    .scenario-meta h3 { font-size: 1.05rem; margin-bottom: 5px; }
+    .scenario-meta p { color: var(--muted); font-size: 0.85rem; line-height: 1.55; }
+    .scenario-badge { background: rgba(242,204,143,.1); border: 1px solid rgba(242,204,143,.25); border-radius: 99px; padding: 3px 12px; font-size: 0.72rem; color: var(--nc2); white-space: nowrap; }
+    .scenario-body { display: grid; grid-template-columns: 1fr 1fr; }
+    .sc-side { padding: 20px 26px; }
+    .sc-side:first-child { border-right: 1px solid var(--border); }
+    .sc-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--nc); font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .sc-label.res { color: var(--nc2); }
+    .sc-label svg { opacity: .7; }
+    .prompt-bubble { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px 12px 12px 4px; padding: 12px 16px; font-size: 0.88rem; color: var(--text); line-height: 1.6; position: relative; }
+    .prompt-bubble.mobile-style { padding-left: 14px; border-left: 3px solid var(--nc); border-radius: 0 12px 12px 0; background: rgba(224,122,95,.06); }
+    .copy-chip { position: absolute; top: 8px; right: 8px; background: var(--nc); color: #fff; border: none; border-radius: 6px; padding: 3px 10px; font-size: 0.7rem; cursor: pointer; font-family: inherit; transition: .15s; }
+    .copy-chip:hover { opacity: .85; }
+    .copy-chip.ok { background: var(--green); }
+    .response-block { background: #110d09; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 0.79rem; color: #e8dfd4; white-space: pre-wrap; max-height: 260px; overflow-y: auto; line-height: 1.65; }
+    .response-block .hd { color: #faf7f2; font-weight: 600; font-family: var(--serif); font-size: 0.88rem; }
+    .response-block .hl { color: var(--nc2); }
+    .response-block .ok { color: var(--green); }
+    .response-block .dim { color: var(--muted); }
+    .response-block .nc { color: var(--nc); }
 
-    /* Garanties */
-    .guarantees { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 48px; }
-    .guarantee { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-    .guarantee-icon { font-size: 1.6rem; margin-bottom: 10px; }
-    .guarantee h4 { font-size: 0.95rem; margin-bottom: 6px; }
-    .guarantee p { color: var(--muted); font-size: 0.82rem; }
-    .guarantee.safe { border-color: rgba(74,222,128,0.3); }
-    .guarantee.safe h4 { color: var(--green); }
+    /* ── Time savings bar ── */
+    .savings-section { background: linear-gradient(135deg, rgba(224,122,95,.08), rgba(242,204,143,.04)); border: 1px solid rgba(224,122,95,.2); border-radius: 20px; padding: 40px; margin-bottom: 72px; }
+    .savings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px; margin-top: 28px; }
+    .saving-item { text-align: center; }
+    .saving-time { font-family: var(--serif); font-size: 2.6rem; font-weight: 700; color: var(--nc); line-height: 1; }
+    .saving-task { font-size: 0.82rem; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+    .saving-bar { height: 3px; background: var(--border); border-radius: 3px; margin: 10px auto 0; max-width: 80px; overflow: hidden; }
+    .saving-fill { height: 100%; background: linear-gradient(90deg, var(--nc), var(--nc2)); border-radius: 3px; }
 
-    /* Proof of concept */
-    .poc-grid { display: flex; flex-direction: column; gap: 24px; }
-    .poc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-    .poc-head { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 14px; }
-    .poc-num { width: 32px; height: 32px; min-width: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--nc), var(--nc2)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: #fff; }
-    .poc-meta h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-    .poc-meta p { color: var(--muted); font-size: 0.85rem; }
-    .poc-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-    .poc-side { padding: 18px 22px; }
-    .poc-side:first-child { border-right: 1px solid var(--border); }
-    .poc-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--nc); font-weight: 600; margin-bottom: 8px; }
-    .poc-label.result { color: var(--accent2); }
-    .prompt-text { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'Courier New', monospace; font-size: 0.83rem; color: #c8c8d0; white-space: pre-wrap; position: relative; }
-    .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--nc); color: #fff; border: none; border-radius: 5px; padding: 4px 10px; font-size: 0.72rem; cursor: pointer; font-family: inherit; }
-    .copy-btn:hover { opacity: 0.85; }
-    .copy-btn.ok { background: var(--green); }
-    .result-text { background: #110d09; border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'Courier New', monospace; font-size: 0.8rem; color: #e8dfd4; white-space: pre-wrap; max-height: 280px; overflow-y: auto; line-height: 1.6; }
-    .result-text .hd { color: #faf7f2; font-weight: 600; }
-    .result-text .hl { color: var(--accent2); }
-    .result-text .ok { color: var(--green); }
-    .result-text .wn { color: var(--yellow); }
-    .result-text .dm { color: var(--muted); }
+    /* ── How it works ── */
+    .how { margin-bottom: 72px; }
+    .steps-flow { display: flex; gap: 0; flex-direction: column; }
+    .flow-step { display: flex; gap: 20px; }
+    .flow-left { display: flex; flex-direction: column; align-items: center; min-width: 52px; }
+    .flow-num { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--nc), var(--nc2)); display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-weight: 700; font-size: 1.1rem; color: #fff; flex-shrink: 0; z-index: 1; }
+    .flow-line { width: 2px; background: var(--border); flex: 1; min-height: 28px; }
+    .flow-body { padding: 4px 0 36px 0; flex: 1; }
+    .flow-body h4 { font-size: 1.05rem; margin-bottom: 6px; }
+    .flow-body p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+    .flow-body code { background: var(--surface2); color: var(--nc2); padding: 2px 8px; border-radius: 5px; font-size: 0.82rem; }
+    .flow-example { margin-top: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 0.84rem; color: var(--muted); font-style: italic; }
+    .flow-example::before { content: '💬  '; font-style: normal; }
 
-    /* Workflow */
-    .workflow { display: flex; flex-direction: column; gap: 0; }
-    .wf-step { display: flex; gap: 16px; }
-    .wf-left { display: flex; flex-direction: column; align-items: center; min-width: 44px; }
-    .wf-num { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--nc), var(--nc2)); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; color: #fff; }
-    .wf-line { width: 2px; background: var(--border); flex: 1; min-height: 20px; }
-    .wf-body { padding: 2px 0 28px 16px; flex: 1; }
-    .wf-body h4 { font-size: 0.97rem; font-weight: 600; margin-bottom: 4px; }
-    .wf-body p { color: var(--muted); font-size: 0.88rem; }
-    .wf-body code { background: var(--surface2); color: var(--accent2); padding: 2px 8px; border-radius: 5px; font-size: 0.82rem; }
-
-    /* Install CTA */
-    .install-cta { background: linear-gradient(135deg, rgba(224,122,95,0.08), rgba(242,204,143,0.05)); border: 1px solid rgba(224,122,95,0.25); border-radius: 16px; padding: 32px; text-align: center; }
-    .install-cta h3 { font-size: 1.3rem; margin-bottom: 8px; }
-    .install-cta p { color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
-    .install-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
-    .os-tab { padding: 8px 20px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); color: var(--muted); font-weight: 600; cursor: pointer; transition: all .15s; }
-    .os-tab.active { border-color: var(--nc); background: rgba(224,122,95,0.1); color: var(--text); }
-    .cmd-install { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; max-width: 600px; margin: 0 auto; }
-    .cmd-install code { font-family: 'Courier New', monospace; font-size: 0.82rem; color: var(--accent2); flex: 1; word-break: break-all; text-align: left; }
-    .cmd-copy { background: var(--nc); color: #fff; border: none; border-radius: 7px; padding: 8px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: opacity .15s; }
-    .cmd-copy:hover { opacity: 0.85; }
+    /* ── Install CTA ── */
+    .install-cta { background: linear-gradient(135deg, rgba(224,122,95,.1), rgba(242,204,143,.06)); border: 1px solid rgba(224,122,95,.3); border-radius: 20px; padding: 40px; text-align: center; }
+    .install-cta h3 { font-size: 1.6rem; margin-bottom: 10px; letter-spacing: -0.02em; }
+    .install-cta p { color: var(--muted); margin-bottom: 28px; font-size: 0.95rem; max-width: 480px; margin-inline: auto; line-height: 1.7; }
+    .install-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+    .os-tab { padding: 8px 22px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); color: var(--muted); font-weight: 600; cursor: pointer; transition: all .15s; min-height: 44px; }
+    .os-tab.active { border-color: var(--nc); background: rgba(224,122,95,.1); color: var(--text); }
+    .cmd-install { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; max-width: 640px; margin: 0 auto; }
+    .cmd-install code { font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--nc2); flex: 1; word-break: break-all; text-align: left; }
+    .cmd-copy { background: var(--nc); color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-size: 0.82rem; font-weight: 700; cursor: pointer; flex-shrink: 0; transition: opacity .15s; min-height: 44px; }
+    .cmd-copy:hover { opacity: .85; }
     .cmd-copy.ok { background: var(--green); }
 
-    footer { text-align: center; padding: 32px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
+    /* ── Webapp CTA ── */
+    .webapp-cta { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 32px; display: flex; align-items: center; gap: 24px; margin-top: 20px; }
+    .webapp-icon { width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--nc), var(--nc2)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .webapp-text h4 { font-size: 1rem; margin-bottom: 4px; }
+    .webapp-text p { color: var(--muted); font-size: 0.85rem; }
+    .webapp-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--nc); color: #fff; border-radius: 10px; padding: 10px 20px; font-weight: 700; font-size: 0.9rem; text-decoration: none; white-space: nowrap; transition: opacity .15s; margin-left: auto; flex-shrink: 0; }
+    .webapp-btn:hover { opacity: .85; }
 
-    @media(max-width: 640px) {
-      .poc-body { grid-template-columns: 1fr; }
-      .poc-side:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    footer { text-align: center; padding: 36px 24px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
+
+    /* ── Mobile ── */
+    img, video, iframe { max-width: 100%; }
+    pre, code { max-width: 100%; }
+    @media (max-width: 640px) {
+      .topbar { padding: 8px 12px; min-height: 52px; }
+      .hero { padding: 52px 16px 40px; }
+      .hero-stats { gap: 20px; }
+      main { padding: 40px 16px 60px; }
+      .scenario-head { padding: 16px 18px 14px; gap: 12px; }
+      .sc-side { padding: 14px 18px; }
+      .savings-section { padding: 24px 20px; }
+      .install-cta { padding: 28px 20px; }
+      .webapp-cta { flex-direction: column; text-align: center; }
+      .webapp-btn { margin-left: 0; }
     }
-  
-  /* ══ MOBILE GLOBAL ══════════════════════════════════════════════════════ */
-  html, body { overflow-x: hidden; max-width: 100vw; }
-  *, *::before, *::after { box-sizing: border-box; }
-  img, video, iframe { max-width: 100%; }
-  pre, code { max-width: 100%; }
-  /* Topbar mobile */
-  @media (max-width: 640px) {
-    .topbar { padding: 8px 12px; min-height: 52px; flex-wrap: nowrap; }
-    .nav-links { gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex-wrap: nowrap; }
-    .nav-links::-webkit-scrollbar { display: none; }
-    .nav-links a { padding: 6px 8px; font-size: 0.78rem; white-space: nowrap; }
-    header h1 { font-size: clamp(1.5rem, 7vw, 2.2rem); line-height: 1.15; word-break: break-word; }
-    header p { font-size: 0.9rem; }
-    main { padding: 20px 14px 60px; }
-  }
-  @media (max-width: 480px) { main { padding-inline: 12px; } }
-  /* Touch targets */
-  button, .btn, .copy-btn, .os-tab, .qp-btn, .cmd-copy, .dl-btn { min-height: 44px; }
-  a.btn, a.dl-btn { min-height: 44px; display: inline-flex; align-items: center; }
-
-
-  @media (max-width: 820px) {
-    .guarantees { grid-template-columns: repeat(2,1fr) !important; }
-    .poc-body { grid-template-columns: 1fr !important; }
-    .poc-side:first-child { border-right: none; border-bottom: 1px solid var(--border); }
-    .agents-row { grid-template-columns: 1fr !important; }
-    .install-tabs { flex-wrap: wrap; }
-  }
-  @media (max-width: 420px) { .guarantees { grid-template-columns: 1fr !important; } }
-  .poc-label { font-size: 0.72rem; }
-  .prompt-text, .result-text, .resp-text { white-space: pre-wrap; word-break: break-word; }
-
+    @media (max-width: 700px) {
+      .scenario-body { grid-template-columns: 1fr; }
+      .sc-side:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+    button, .btn-primary, .btn-secondary, .os-tab, .cmd-copy { min-height: 44px; }
+    .cmd-install { flex-direction: row; align-items: center; }
+    @media (max-width: 480px) {
+      .cmd-install { flex-direction: column; align-items: stretch; }
+      .cmd-install code { font-size: 0.72rem; }
+      .hero-cta { flex-direction: column; align-items: center; }
+    }
   </style>
 </head>
 <body>
@@ -153,272 +172,312 @@
   </span>
 </div>
 
-<header>
-  <div class="nc-logo">
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="NonChalance">
-      <text x="22" y="32" font-family="Georgia,'Times New Roman',serif" font-size="24" font-weight="700" fill="white" text-anchor="middle" letter-spacing="-1">NC</text>
-    </svg>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag"><span></span> Disponible maintenant · No-code</div>
+  <h1>Tu es en réunion.<br><em>Claude gère le reste.</em></h1>
+  <p class="hero-sub">Envoie des mails depuis ton téléphone, génère des docs en 30 secondes, comprends le code sans l'ouvrir — sans jamais toucher une ligne de code.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">47<span style="font-size:1.2rem">min</span></div>
+      <div class="stat-label">économisées par semaine</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">30<span style="font-size:1.2rem">s</span></div>
+      <div class="stat-label">pour générer un README</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-label">ligne de code à écrire</div>
+    </div>
   </div>
-  <div class="safety-badge">
-    <span>🔒</span> Lecture seule · Aucun push possible · No-code
+  <div class="hero-cta">
+    <a href="#scenarios" class="btn-primary">Voir les scénarios →</a>
+    <a href="/claudeboost/chat.html" class="btn-secondary">Essayer l'interface web</a>
   </div>
-  <h1>NonChalance<span> × Claude</span></h1>
-  <p>Génère de la documentation, comprends le code, propose des idées — sans toucher une ligne de code. Tu es branché sur le projet, en toute sécurité.</p>
-</header>
+</section>
 
 <main>
 
-  <!-- Garanties -->
-  <div class="guarantees">
-    <div class="guarantee safe">
-      <div class="guarantee-icon">🔒</div>
-      <h4>Lecture seule</h4>
-      <p>Le code ne peut pas être modifié. Toute tentative de push est bloquée automatiquement.</p>
-    </div>
-    <div class="guarantee safe">
-      <div class="guarantee-icon">🚫</div>
-      <h4>No-code</h4>
-      <p>Tu n'écris pas de code. Claude lit le projet pour toi et te répond en français clair.</p>
-    </div>
-    <div class="guarantee safe">
-      <div class="guarantee-icon">🔌</div>
-      <h4>Pluggé sur le projet</h4>
-      <p>Claude a accès au code source réel — les réponses reflètent ce qui est vraiment implémenté.</p>
-    </div>
-    <div class="guarantee">
-      <div class="guarantee-icon">📝</div>
-      <h4>Doc générée en 30 sec</h4>
-      <p>README, changelogs, spécifications, guides utilisateur — tout ça depuis le code existant.</p>
+  <!-- SCENARIOS -->
+  <div id="scenarios">
+    <div class="section-label">Proof of concept</div>
+    <h2 class="section-title">Ce que tu peux faire aujourd'hui</h2>
+    <p class="section-sub">Des scénarios réels, depuis n'importe quel appareil. Claude est branché sur le projet — il connaît le code, l'équipe, et ce qui a changé.</p>
+
+    <div class="scenarios">
+
+      <!-- Scénario 1 : Téléphone en réunion -->
+      <div class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-icon">📱</div>
+          <div class="scenario-meta">
+            <h3>Mail urgent depuis ton téléphone, en pleine réunion</h3>
+            <p>Tu réalises que tu as oublié de prévenir toute l'équipe. Tu sors ton tel, tu tapes en 10 mots — Claude rédige et envoie.</p>
+          </div>
+          <span class="scenario-badge">📱 Mobile</span>
+        </div>
+        <div class="scenario-body">
+          <div class="sc-side">
+            <div class="sc-label">
+              <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4.5" stroke="currentColor" fill="none"/><path d="M5 3v3M5 7.5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              Tu tapes (depuis ton tel)
+            </div>
+            <div class="prompt-bubble mobile-style">
+              <button class="copy-chip" onclick="copyPoc(this)">Copier</button>Envoie un mail à toute l'équipe NonChalance pour les prévenir que le standup de demain matin est repoussé à 11h. Ton habituel.</div>
+          </div>
+          <div class="sc-side">
+            <div class="sc-label res">Claude agit</div>
+            <div class="response-block"><span class="hd">✉ Mail envoyé à 4 destinataires</span>
+
+<span class="hl">Destinataires :</span> Arthur, Léo, Louis, Nico
+<span class="hl">Objet :</span> Standup décalé à 11h demain
+
+<span class="nc">—</span>
+Bonjour à tous,
+
+Petit changement d'agenda : notre standup
+de demain matin est décalé à <span class="ok">11h</span>.
+Même lien de visio que d'habitude.
+
+À demain,
+<span class="dim">— Envoyé via Claude · 14:32</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scénario 2 : Comprendre un bug -->
+      <div class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-icon">🔍</div>
+          <div class="scenario-meta">
+            <h3>Comprendre un bug en 30 secondes, sans lire le code</h3>
+            <p>L'équipe dev parle d'un bug en réunion. Tu veux comprendre ce qui se passe pour poser les bonnes questions.</p>
+          </div>
+          <span class="scenario-badge">⚡ 30 sec</span>
+        </div>
+        <div class="scenario-body">
+          <div class="sc-side">
+            <div class="sc-label">Tu tapes</div>
+            <div class="prompt-bubble">
+              <button class="copy-chip" onclick="copyPoc(this)">Copier</button>Les notifs temps réel ne marchent plus depuis la dernière mise à jour. C'est quoi le problème et c'est grave ?</div>
+          </div>
+          <div class="sc-side">
+            <div class="sc-label res">Claude explique</div>
+            <div class="response-block"><span class="hd">Diagnostic — Notifications temps réel</span>
+
+<span class="hl">Le problème :</span>
+La connexion WebSocket (temps réel) se
+coupe après 30s d'inactivité. Le code de
+reconnexion automatique a été désactivé
+dans le commit du 17 mai.
+
+<span class="hl">Impact :</span> Les utilisateurs ne reçoivent
+pas les nouvelles tâches en direct.
+Ils doivent recharger la page.
+
+<span class="ok">✓ Pas de perte de données</span>
+<span class="ok">✓ Workaround : F5 ou pull-to-refresh</span>
+
+<span class="dim">→ Correction estimée : 1h dev</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scénario 3 : Brief freelance -->
+      <div class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-icon">📋</div>
+          <div class="scenario-meta">
+            <h3>Brief technique pour un freelance en 2 minutes</h3>
+            <p>Tu intègres quelqu'un sur une mission. Claude lit le code et génère un brief complet — stack, architecture, conventions.</p>
+          </div>
+          <span class="scenario-badge">📝 Doc auto</span>
+        </div>
+        <div class="scenario-body">
+          <div class="sc-side">
+            <div class="sc-label">Tu tapes</div>
+            <div class="prompt-bubble">
+              <button class="copy-chip" onclick="copyPoc(this)">Copier</button>Génère un brief technique pour un freelance qui va travailler sur le module notifications. Explique la stack, comment ajouter un type de notif, et les conventions du projet.</div>
+          </div>
+          <div class="sc-side">
+            <div class="sc-label res">Claude génère</div>
+            <div class="response-block"><span class="hd">Brief technique — Module Notifications</span>
+
+<span class="hl">Stack</span>
+Node.js · Express · WebSocket (ws)
+MariaDB · Vanilla JS frontend
+
+<span class="hl">Ajouter un type de notification</span>
+1. Créer l'event dans <span class="nc">server/events/</span>
+2. L'émettre via <span class="nc">notifService.send(userId, type, data)</span>
+3. Gérer côté front dans <span class="nc">public/js/notifs.js</span>
+
+<span class="hl">Conventions</span>
+- Queries SQL paramétrées uniquement
+- Réponses API : <span class="nc">{ success, data }</span>
+- Messages user en 🇫🇷 français
+
+<span class="dim">→ Sauvegardé dans docs/brief-freelance.md</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scénario 4 : Changelog client -->
+      <div class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-icon">📣</div>
+          <div class="scenario-meta">
+            <h3>Changelog client depuis les commits, sans jargon tech</h3>
+            <p>La mise à jour est prête. Claude transforme les commits en texte lisible pour tes clients, en 20 secondes.</p>
+          </div>
+          <span class="scenario-badge">⚡ 20 sec</span>
+        </div>
+        <div class="scenario-body">
+          <div class="sc-side">
+            <div class="sc-label">Tu tapes</div>
+            <div class="prompt-bubble">
+              <button class="copy-chip" onclick="copyPoc(this)">Copier</button>Regarde les commits depuis le 10 mai et écris un changelog pour nos clients. Simple, sans jargon, avec des emojis. Style newsletter.</div>
+          </div>
+          <div class="sc-side">
+            <div class="sc-label res">Claude rédige</div>
+            <div class="response-block"><span class="hd">🚀 NonChalance — Nouveautés mai 2026</span>
+
+<span class="ok">✨ Nouveau</span>
+Les notifications arrivent maintenant
+en temps réel — plus besoin de recharger.
+
+<span class="ok">⚡ Plus rapide</span>
+Les pages chargent 40 % plus vite.
+Votre tableau de bord s'affiche en &lt;1s.
+
+<span class="ok">📱 Mobile</span>
+L'interface s'adapte mieux aux petits écrans.
+
+<span class="ok">🔐 Sécurité</span>
+Mise à jour de sécurité majeure
+(détails techniques disponibles sur demande).
+
+<span class="dim">→ Prêt à copier dans votre newsletter</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scénario 5 : Ticket UX instantané -->
+      <div class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-icon">🎫</div>
+          <div class="scenario-meta">
+            <h3>Signaler un bug UX depuis le terrain, en une phrase</h3>
+            <p>Tu utilises l'app sur ton iPhone et tu remarques un problème. Tu le signales directement — Claude crée un ticket structuré pour l'équipe dev.</p>
+          </div>
+          <span class="scenario-badge">📱 Sur le terrain</span>
+        </div>
+        <div class="scenario-body">
+          <div class="sc-side">
+            <div class="sc-label">Tu tapes (depuis ton tel)</div>
+            <div class="prompt-bubble mobile-style">
+              <button class="copy-chip" onclick="copyPoc(this)">Copier</button>Sur iPhone le bouton "Envoyer" disparaît quand le clavier s'ouvre sur le formulaire de devis. Crée un ticket pour Arthur.</div>
+          </div>
+          <div class="sc-side">
+            <div class="sc-label res">Ticket créé</div>
+            <div class="response-block"><span class="hd">🎫 [BUG-047] Bouton masqué sur iOS — Devis</span>
+
+<span class="hl">Description</span>
+Le bouton "Envoyer" est masqué par le
+clavier natif iOS sur le formulaire de devis.
+
+<span class="hl">Reproduction</span>
+1. iPhone · Safari
+2. Ouvrir formulaire de devis
+3. Taper dans un champ → clavier ouvre
+4. Le bouton "Envoyer" disparaît
+
+<span class="hl">Impact :</span> Bloquant mobile
+<span class="hl">Priorité :</span> Haute
+<span class="hl">Assigné à :</span> Arthur
+
+<span class="ok">✓ Ticket créé · GitHub Issue #47</span></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- Proof of concept -->
-  <section>
-    <h2>Proof of concept — Ce que tu peux faire maintenant</h2>
-    <div class="poc-grid">
-
-      <!-- POC 1 -->
-      <div class="poc-card">
-        <div class="poc-head">
-          <div class="poc-num">1</div>
-          <div class="poc-meta">
-            <h3>Comprendre une fonctionnalité sans lire le code</h3>
-            <p>Idéal pour onboarder ou vérifier comment quelque chose fonctionne.</p>
-          </div>
-        </div>
-        <div class="poc-body">
-          <div class="poc-side">
-            <div class="poc-label">Tu tapes dans Claude</div>
-            <div class="prompt-text" style="position:relative">
-              <button class="copy-btn" onclick="copyPoc(this)">Copier</button>Explique-moi comment fonctionne l'authentification dans ce projet. Je ne suis pas développeur, utilise un langage simple.</div>
-          </div>
-          <div class="poc-side">
-            <div class="poc-label result">Claude répond</div>
-            <div class="result-text"><span class="hd">Authentification de NonChalanceApp</span>
-
-Quand tu te connectes, voici ce qui se passe :
-
-<span class="hl">1. Tu entres ton email + mot de passe</span>
-   → Envoyé au serveur de manière sécurisée (HTTPS)
-
-<span class="hl">2. Le serveur vérifie ton identité</span>
-   → Ton mot de passe est comparé à une version
-     chiffrée stockée en base de données
-
-<span class="hl">3. Un "badge" temporaire est créé</span>
-   → C'est un JWT (JSON Web Token), valable 7 jours
-   → Il prouve que tu es bien toi sans que tu
-     retapes ton mot de passe à chaque page
-
-<span class="ok">✓ Ton badge est stocké dans un cookie sécurisé.</span>
-<span class="ok">✓ Il est invalidé si tu cliques "Déconnexion".</span>
-
-<span class="dm">Source : server/middleware/auth.js</span></div>
-          </div>
-        </div>
+  <!-- GAINS DE TEMPS -->
+  <div class="savings-section">
+    <div class="section-label">Gain de temps</div>
+    <h2 class="section-title">Ce que ça représente vraiment</h2>
+    <div class="savings-grid">
+      <div class="saving-item">
+        <div class="saving-time">2 min</div>
+        <div class="saving-bar"><div class="saving-fill" style="width:8%"></div></div>
+        <div class="saving-task">Mail d'équipe rédigé et envoyé</div>
       </div>
-
-      <!-- POC 2 -->
-      <div class="poc-card">
-        <div class="poc-head">
-          <div class="poc-num">2</div>
-          <div class="poc-meta">
-            <h3>Générer un README complet depuis le code</h3>
-            <p>Documentation qui reflète exactement ce qui est implémenté.</p>
-          </div>
-        </div>
-        <div class="poc-body">
-          <div class="poc-side">
-            <div class="poc-label">Tu tapes dans Claude</div>
-            <div class="prompt-text" style="position:relative">
-              <button class="copy-btn" onclick="copyPoc(this)">Copier</button>Génère un README.md professionnel pour ce projet. Inclus : description, fonctionnalités principales, installation, et usage de base. Base-toi sur le code existant.</div>
-          </div>
-          <div class="poc-side">
-            <div class="poc-label result">Claude génère</div>
-            <div class="result-text"><span class="hd"># NonChalanceApp</span>
-
-Application web de gestion de projets créatifs
-pour agences et freelances.
-
-<span class="hl">## Fonctionnalités</span>
-
-- 🗂️ Gestion de projets et de clients
-- 👥 Espace collaboratif multi-utilisateurs
-- 📊 Tableau de bord analytique
-- 🔐 Authentification sécurisée (JWT)
-- 📱 Interface responsive mobile-first
-
-<span class="hl">## Installation</span>
-
-\`\`\`bash
-git clone https://github.com/.../NonChalanceApp
-npm install
-cp .env.example .env
-npm run dev
-\`\`\`
-
-<span class="hl">## Stack technique</span>
-
-Node.js · Express · MariaDB · Vanilla JS
-
-<span class="dm">→ Sauvegarde dans docs/README.md</span></div>
-          </div>
-        </div>
+      <div class="saving-item">
+        <div class="saving-time">30 s</div>
+        <div class="saving-bar"><div class="saving-fill" style="width:3%"></div></div>
+        <div class="saving-task">README complet depuis le code</div>
       </div>
-
-      <!-- POC 3 -->
-      <div class="poc-card">
-        <div class="poc-head">
-          <div class="poc-num">3</div>
-          <div class="poc-meta">
-            <h3>Rédiger un changelog depuis les derniers commits</h3>
-            <p>Changelog lisible pour les clients et non-techniciens.</p>
-          </div>
-        </div>
-        <div class="poc-body">
-          <div class="poc-side">
-            <div class="poc-label">Tu tapes dans Claude</div>
-            <div class="prompt-text" style="position:relative">
-              <button class="copy-btn" onclick="copyPoc(this)">Copier</button>Regarde les 20 derniers commits git et génère un changelog clair pour nos clients. Style : simple, sans jargon technique, daté.</div>
-          </div>
-          <div class="poc-side">
-            <div class="poc-label result">Claude génère</div>
-            <div class="result-text"><span class="hd">📋 Mises à jour NonChalanceApp</span>
-
-<span class="hl">Mai 2026</span>
-
-<span class="ok">✦</span> Nouvelle page profil avec photo et bio
-<span class="ok">✦</span> Les notifications arrivent maintenant en temps réel
-<span class="ok">✦</span> Amélioration vitesse de chargement (-40 %)
-<span class="ok">✦</span> Correction du bug d'affichage sur iPhone
-
-<span class="hl">Avril 2026</span>
-
-<span class="ok">✦</span> Ajout du module "Devis" avec export PDF
-<span class="ok">✦</span> Connexion Google disponible
-<span class="wn">⚠</span> Maintenance base de données (2h d'indispo)
-
-<span class="dm">→ Sauvegarde dans docs/CHANGELOG.md</span></div>
-          </div>
-        </div>
+      <div class="saving-item">
+        <div class="saving-time">3 min</div>
+        <div class="saving-bar"><div class="saving-fill" style="width:12%"></div></div>
+        <div class="saving-task">Brief freelance prêt à envoyer</div>
       </div>
-
-      <!-- POC 4 -->
-      <div class="poc-card">
-        <div class="poc-head">
-          <div class="poc-num">4</div>
-          <div class="poc-meta">
-            <h3>Proposer des améliorations UX sans coder</h3>
-            <p>Analyser le code existant pour identifier des points d'amélioration.</p>
-          </div>
-        </div>
-        <div class="poc-body">
-          <div class="poc-side">
-            <div class="poc-label">Tu tapes dans Claude</div>
-            <div class="prompt-text" style="position:relative">
-              <button class="copy-btn" onclick="copyPoc(this)">Copier</button>Analyse le parcours de connexion dans le code. Identifie 3 points d'amélioration UX concrets et rédige-les sous forme de tickets pour l'équipe dev.</div>
-          </div>
-          <div class="poc-side">
-            <div class="poc-label result">Claude génère</div>
-            <div class="result-text"><span class="hd">🎫 3 tickets UX — Parcours connexion</span>
-
-<span class="hl">[UX-01] Message d'erreur trop vague</span>
-Actuel : "Identifiants incorrects"
-Suggestion : "Email ou mot de passe incorrect.
-Mot de passe oublié ? → [lien reset]"
-Priorité : haute · Effort : faible
-
-<span class="hl">[UX-02] Pas de feedback visuel pendant chargement</span>
-La page freeze pendant ~800ms sans spinner.
-Suggestion : loader animé sur le bouton.
-Priorité : moyenne · Effort : faible
-
-<span class="hl">[UX-03] Redirection post-login générique</span>
-Renvoie toujours vers /dashboard même si
-l'utilisateur venait d'une autre page.
-Suggestion : mémoriser l'URL d'origine.
-Priorité : haute · Effort : moyen
-
-<span class="dm">→ Sauvegarde dans docs/tickets/UX-login.md</span></div>
-          </div>
-        </div>
+      <div class="saving-item">
+        <div class="saving-time">20 s</div>
+        <div class="saving-bar"><div class="saving-fill" style="width:2%"></div></div>
+        <div class="saving-task">Changelog client depuis les commits</div>
       </div>
-
     </div>
-  </section>
+  </div>
 
-  <!-- Workflow -->
-  <section>
-    <h2>Comment ça marche — en pratique</h2>
-    <div class="workflow">
-      <div class="wf-step">
-        <div class="wf-left"><div class="wf-num">1</div><div class="wf-line"></div></div>
-        <div class="wf-body">
-          <h4>Installe Claude Code (profil NonChalance)</h4>
-          <p>Le script clone automatiquement le repo en <strong>lecture seule</strong> sur ton ordi. Tu ne peux pas modifier le code source.</p>
+  <!-- HOW IT WORKS -->
+  <div class="how">
+    <div class="section-label">Comment ça marche</div>
+    <h2 class="section-title">Simple. Vraiment.</h2>
+    <p class="section-sub">Pas d'interface complexe. Tu parles — Claude exécute.</p>
+
+    <div class="steps-flow">
+      <div class="flow-step">
+        <div class="flow-left"><div class="flow-num">1</div><div class="flow-line"></div></div>
+        <div class="flow-body">
+          <h4>Tu installes en 5 minutes</h4>
+          <p>Un script automatique configure tout : accès lecture seule au projet, permissions, clé API. Tu ne touches pas au code.</p>
+          <div class="flow-example">Le script fait tout. Tu réponds à 2 questions.</div>
         </div>
       </div>
-      <div class="wf-step">
-        <div class="wf-left"><div class="wf-num">2</div><div class="wf-line"></div></div>
-        <div class="wf-body">
-          <h4>Ouvre le dossier du projet</h4>
-          <p>Dans ton terminal : <code>cd ~/NonChalanceApp && claude</code></p>
+      <div class="flow-step">
+        <div class="flow-left"><div class="flow-num">2</div><div class="flow-line"></div></div>
+        <div class="flow-body">
+          <h4>Tu ouvres Claude depuis n'importe où</h4>
+          <p>Terminal, interface web, téléphone. <code>cd ~/NonChalanceApp && claude</code> — Claude se connecte au projet automatiquement.</p>
+          <div class="flow-example">Ou via l'interface web depuis ton navigateur mobile.</div>
         </div>
       </div>
-      <div class="wf-step">
-        <div class="wf-left"><div class="wf-num">3</div><div class="wf-line"></div></div>
-        <div class="wf-body">
-          <h4>Pose tes questions en français</h4>
-          <p>Claude lit le code réel du projet et te répond. Aucune compétence technique requise.</p>
-        </div>
-      </div>
-      <div class="wf-step">
-        <div class="wf-left"><div class="wf-num">4</div></div>
-        <div class="wf-body">
-          <h4>Sauvegarde dans docs/ et propose via PR</h4>
-          <p>Enregistre la doc générée dans <code>docs/</code>, puis propose via une Pull Request GitHub. Arthur review et merge.</p>
+      <div class="flow-step">
+        <div class="flow-left"><div class="flow-num">3</div></div>
+        <div class="flow-body">
+          <h4>Tu demandes, il exécute</h4>
+          <p>En français, en langage naturel. Claude lit le code réel, génère, envoie, crée des tickets — tout ce dont tu as besoin sans écrire une ligne.</p>
+          <div class="flow-example">Envoie un mail à l'équipe pour ce soir.</div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- CTA Installation -->
-  <!-- Web App CTA -->
-  <section style="margin-bottom:28px">
-    <div style="background:linear-gradient(135deg,rgba(124,106,247,.1),rgba(79,209,197,.06));border:1px solid rgba(124,106,247,.3);border-radius:16px;padding:28px;text-align:center">
-      <div style="font-size:2rem;margin-bottom:12px">🤖</div>
-      <h3 style="font-size:1.2rem;margin-bottom:8px">Interface web — <span style="color:var(--nc2)">En préparation</span></h3>
-      <p style="color:var(--muted);font-size:0.9rem;margin-bottom:20px;max-width:480px;margin-inline:auto">Accède à l'assistant documentation directement depuis ton navigateur, sans rien installer. Il suffit d'une clé API ou d'un accès au serveur Claude.</p>
-      <a href="/claudeboost/chat.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:12px 24px;font-weight:700">
-        Essayer l'interface →
-      </a>
-      <p style="color:var(--muted);font-size:0.75rem;margin-top:12px">Prototype · Connexion serveur à configurer</p>
-    </div>
-  </section>
-
+  <!-- INSTALL CTA -->
   <div class="install-cta">
-    <h3>Prêt à générer de la doc ?</h3>
-    <p>Installation en 5 minutes. Le script fait tout.</p>
+    <div class="nc-logo-wrap" style="margin-bottom:20px">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--nc),var(--nc2));box-shadow:0 0 28px rgba(224,122,95,.3)">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <text x="18" y="27" font-family="Georgia,'Times New Roman',serif" font-size="20" font-weight="700" fill="white" text-anchor="middle" letter-spacing="-1">NC</text>
+        </svg>
+      </div>
+    </div>
+    <h3>Prêt à gagner du temps ?</h3>
+    <p>Installation en 5 minutes. Le script configure tout — accès lecture seule, permissions, clé API. Tu tapes une commande, c'est prêt.</p>
     <div class="install-tabs">
       <button class="os-tab active" id="tab-win" onclick="switchOS('win')">⊞ Windows</button>
       <button class="os-tab" id="tab-mac" onclick="switchOS('mac')">⌘ macOS</button>
@@ -432,15 +491,29 @@ Priorité : haute · Effort : moyen
       <button class="cmd-copy" onclick="copyInstall('mac-cmd', this)">Copier</button>
     </div>
     <div style="margin-top:16px;font-size:0.82rem;color:var(--muted)">
-      Besoin d'aide ? → <a href="/claudeboost/tuto.html">Tuto pas à pas</a>
+      Besoin d'aide ? → <a href="/claudeboost/tuto.html" style="color:var(--nc2)">Tuto pas à pas</a>
     </div>
+  </div>
+
+  <!-- WEBAPP CTA -->
+  <div class="webapp-cta">
+    <div class="webapp-icon">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <text x="14" y="21" font-family="Georgia,serif" font-size="16" font-weight="700" fill="white" text-anchor="middle">NC</text>
+      </svg>
+    </div>
+    <div class="webapp-text">
+      <h4>Interface web — accès immédiat depuis ton navigateur</h4>
+      <p>Pas d'installation. Entre ta clé API et commence à prompter depuis ton téléphone, tablette ou ordi.</p>
+    </div>
+    <a href="/claudeboost/chat.html" class="webapp-btn">Ouvrir →</a>
   </div>
 
 </main>
 
 <footer>
-  Claude Boost · NonChalance × Claude · 2026 ·
-  <a href="/claudeboost/">← Accueil</a>
+  NonChalance × Claude · Claude Boost 2026 ·
+  <a href="/claudeboost/" style="color:var(--muted)">← Accueil</a>
 </footer>
 
 <script>
@@ -451,20 +524,26 @@ function switchOS(os) {
   document.getElementById('tab-mac').className = 'os-tab'+(os==='mac'?' active':'');
 }
 function copyPoc(btn) {
-  const box = btn.closest('.prompt-text');
+  const box = btn.closest('.prompt-bubble');
   const text = box.textContent.replace('Copier','').trim();
-  navigator.clipboard.writeText(text).then(()=>{
-    btn.textContent='✓'; btn.classList.add('ok');
-    setTimeout(()=>{ btn.textContent='Copier'; btn.classList.remove('ok'); },1800);
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('ok'); }, 1800);
   });
 }
 function copyInstall(id, btn) {
-  navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>{
-    btn.textContent='✓ Copié'; btn.classList.add('ok');
-    setTimeout(()=>{ btn.textContent='Copier'; btn.classList.remove('ok'); },2000);
+  navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => {
+    btn.textContent = '✓ Copié'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('ok'); }, 2000);
   });
 }
 if (/Mac|iPhone|iPad/.test(navigator.userAgent)) switchOS('mac');
+
+// Smooth scroll for hero CTA
+document.querySelector('a[href="#scenarios"]').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('scenarios').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 </script>
 </body>
 </html>
