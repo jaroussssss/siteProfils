@@ -19,8 +19,11 @@ jobs:
             set -e
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            if [ ! -d ~/siteprofils ]; then
+              git clone https://github.com/jaroussssss/siteProfils.git ~/siteprofils
+            fi
             cd ~/siteprofils
             git pull origin main
             [ -f package.json ] && npm ci --omit=dev --silent || true
             touch tmp/restart.txt 2>/dev/null || true
-            echo "✓ siteProfils déployé à $(date)"
+            echo "siteProfils deploye $(date)"
