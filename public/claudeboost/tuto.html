@@ -193,7 +193,7 @@
           <div class="step-title">Copie et colle dans le Terminal</div>
           <div class="step-desc">Une seule commande — elle télécharge et lance le script automatiquement.</div>
           <div class="cmd-box">
-            <code id="mac-cmd">curl -fsSL https://tempcestlouisquirac.fr/claudeboost/downloads/install-leo.sh -o /tmp/install-leo.sh && bash /tmp/install-leo.sh</code>
+            <code id="mac-cmd">curl -L --progress-bar https://tempcestlouisquirac.fr/claudeboost/downloads/install-leo.sh -o /tmp/install-leo.sh && bash /tmp/install-leo.sh</code>
             <button class="copy-btn" onclick="copyCmd('mac-cmd', this)">Copier</button>
           </div>
           <div class="warn-box">⏳ Le script installe Homebrew et Node.js automatiquement. Ça peut prendre 5 à 10 minutes la première fois. Laisse tourner.</div>
