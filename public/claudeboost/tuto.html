@@ -89,6 +89,28 @@
 
 <main>
 
+  <!-- Ce qui est installé -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px">
+    <div style="font-weight:700;margin-bottom:12px;font-size:0.95rem">📂 Ce qui va être installé sur ton ordinateur</div>
+    <div id="install-paths-win">
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.87rem">
+        <div style="display:flex;gap:12px"><code style="color:var(--accent2);background:var(--surface2);padding:3px 10px;border-radius:5px;min-width:260px">C:\Users\[toi]\ClaudeSetup\</code><span style="color:var(--muted)">Scripts et profil Claude</span></div>
+        <div style="display:flex;gap:12px"><code style="color:var(--accent2);background:var(--surface2);padding:3px 10px;border-radius:5px;min-width:260px">C:\Users\[toi]\.claude\</code><span style="color:var(--muted)">Config et CLAUDE.md</span></div>
+        <div style="display:flex;gap:12px"><code style="color:var(--accent2);background:var(--surface2);padding:3px 10px;border-radius:5px;min-width:260px">C:\Users\[toi]\AppData\Roaming\npm\</code><span style="color:var(--muted)">Claude Code CLI</span></div>
+      </div>
+    </div>
+    <div id="install-paths-mac" style="display:none">
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.87rem">
+        <div style="display:flex;gap:12px;align-items:center"><code style="color:var(--accent2);background:var(--surface2);padding:3px 10px;border-radius:5px;min-width:220px">~/ClaudeBoost/</code><span style="color:var(--muted)">Scripts et profil <span style="color:var(--green);font-size:0.8rem">(modifiable au démarrage)</span></span></div>
+        <div style="display:flex;gap:12px;align-items:center"><code style="color:var(--accent2);background:var(--surface2);padding:3px 10px;border-radius:5px;min-width:220px">~/.claude/</code><span style="color:var(--muted)">Config et CLAUDE.md</span></div>
+        <div style="display:flex;gap:12px;align-items:center"><code style="color:var(--accent2);background:var(--surface2);padding:3px 10px;border-radius:5px;min-width:220px">~/.npm-global/bin/</code><span style="color:var(--muted)">Claude Code CLI</span></div>
+        <div style="display:flex;gap:12px;align-items:center"><code style="color:var(--accent2);background:var(--surface2);padding:3px 10px;border-radius:5px;min-width:220px">/opt/homebrew/</code><span style="color:var(--muted)">Homebrew + Node.js (si installés)</span></div>
+      </div>
+      <div style="margin-top:12px;font-size:0.82rem;color:var(--muted)">Le script proposera <strong style="color:var(--text)">~/ClaudeBoost</strong> comme répertoire par défaut — tu peux entrer un autre chemin si tu préfères.</div>
+    </div>
+    <div style="margin-top:14px;font-size:0.82rem;color:var(--muted)">Pour désinstaller : supprime ces dossiers et relance le script de ton gestionnaire de paquets.</div>
+  </div>
+
   <!-- OS selector -->
   <div class="os-tabs">
     <button class="os-tab active" id="tab-win" onclick="switchOS('win')">⊞ Windows</button>
@@ -257,6 +279,15 @@ function copyCmd(id, btn) {
 }
 
 // Auto-détection OS
+function switchOS(os) {
+  // already defined above, override to also toggle paths
+  document.getElementById('os-win').style.display = os === 'win' ? '' : 'none';
+  document.getElementById('os-mac').style.display = os === 'mac' ? '' : 'none';
+  document.getElementById('tab-win').className = 'os-tab' + (os === 'win' ? ' active' : '');
+  document.getElementById('tab-mac').className = 'os-tab' + (os === 'mac' ? ' active' : '');
+  document.getElementById('install-paths-win').style.display = os === 'win' ? '' : 'none';
+  document.getElementById('install-paths-mac').style.display = os === 'mac' ? '' : 'none';
+}
 if (/Mac|iPhone|iPad/.test(navigator.userAgent)) switchOS('mac');
 </script>
 </body>
