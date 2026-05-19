@@ -30,8 +30,7 @@ jobs:
             mkdir -p ~/ClaudeBoost/public/downloads
             cp ~/SiteProfils/public/claudeboost/index.html ~/ClaudeBoost/public/
             cp ~/SiteProfils/public/claudeboost/downloads/* ~/ClaudeBoost/public/downloads/
-            printf "%s\n" "const express = require(\"express\");" "const path = require(\"path\");" "const app = express();" "app.use(express.static(path.join(__dirname, \"public\")));" "app.listen(process.env.PORT || \"passenger\");" > ~/ClaudeBoost/server.js
-            mkdir -p ~/ClaudeBoost/tmp && touch ~/ClaudeBoost/tmp/restart.txt
+            touch ~/ClaudeBoost/tmp/restart.txt
             echo "Deploy OK $(date)"
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
