@@ -176,7 +176,7 @@ Tape /config pour configurer ta clé API.
 CLAUDEEOF
 
 # Permissions
-cat > "$CLAUDE_DIR/settings.json" << 'SETTINGSEOF'
+cat > "$CLAUDE_DIR/settings.json" << SETTINGSEOF
 {
   "permissions": {
     "allow": [
@@ -185,6 +185,19 @@ cat > "$CLAUDE_DIR/settings.json" << 'SETTINGSEOF'
       "mcp__playwright__*", "mcp__context7__*"
     ],
     "deny": []
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $INSTALL_ROOT/scripts/auto-update.sh",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
   }
 }
 SETTINGSEOF
