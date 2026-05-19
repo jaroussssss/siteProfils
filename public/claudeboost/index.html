@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Boost — Setup Claude Code boosté</title>
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --border: #2a2a3a;
+      --accent: #7c6af7;
+      --accent2: #4fd1c5;
+      --text: #e8e8f0;
+      --muted: #888;
+      --green: #4ade80;
+      --yellow: #fbbf24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', sans-serif; line-height: 1.6; }
+
+    header { padding: 80px 24px 60px; text-align: center; background: linear-gradient(180deg, #1a1a2e 0%, var(--bg) 100%); }
+    header h1 { font-size: clamp(2rem, 6vw, 3.5rem); font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    header p { color: var(--muted); font-size: 1.15rem; margin-top: 12px; max-width: 520px; margin-inline: auto; }
+    .badge { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 4px 14px; font-size: 0.8rem; color: var(--accent); margin-top: 16px; }
+
+    main { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    .profiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 60px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; transition: border-color 0.2s; }
+    .card:hover { border-color: var(--accent); }
+    .card-icon { font-size: 2rem; margin-bottom: 12px; }
+    .card h3 { font-size: 1.15rem; margin-bottom: 8px; }
+    .card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+    .card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+    .tag { background: rgba(124,106,247,0.12); border: 1px solid rgba(124,106,247,0.3); border-radius: 6px; padding: 2px 10px; font-size: 0.75rem; color: var(--accent); }
+    .tag.green { background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.3); color: var(--green); }
+    .tag.yellow { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: var(--yellow); }
+
+    .dl-group { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .btn:hover { opacity: 0.85; }
+    .btn-win { background: #0078d4; color: #fff; }
+    .btn-mac { background: #555; color: #fff; }
+
+    section.how { margin-bottom: 60px; }
+    section h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; }
+    .steps { display: flex; flex-direction: column; gap: 16px; }
+    .step { display: flex; gap: 16px; align-items: flex-start; }
+    .step-num { width: 32px; height: 32px; min-width: 32px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .step-content h4 { margin-bottom: 4px; }
+    .step-content p { color: var(--muted); font-size: 0.9rem; }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; font-size: 0.85rem; overflow-x: auto; margin-top: 8px; color: var(--accent2); }
+
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 60px; }
+    .feature { padding: 20px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); }
+    .feature-icon { font-size: 1.5rem; margin-bottom: 10px; }
+    .feature h4 { font-size: 0.95rem; margin-bottom: 6px; }
+    .feature p { color: var(--muted); font-size: 0.82rem; }
+
+    footer { text-align: center; padding: 40px 24px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">⚡ Claude Code Boosté · v1.0</div>
+  <h1>Claude Boost</h1>
+  <p>Un setup Claude Code préconfiguré, ultra-performant, avec scripts locaux et mémoire persistante.</p>
+</header>
+
+<main>
+
+  <div class="features">
+    <div class="feature"><div class="feature-icon">⚡</div><h4>Scripts locaux</h4><p>GitHub, Gmail, Drive sans MCP. Coût 0 token overhead.</p></div>
+    <div class="feature"><div class="feature-icon">🧠</div><h4>Mémoire persistante</h4><p>Claude se souvient de toi entre les sessions.</p></div>
+    <div class="feature"><div class="feature-icon">🔒</div><h4>Permissions fines</h4><p>Chaque profil a exactement les droits qu'il faut.</p></div>
+    <div class="feature"><div class="feature-icon">🤖</div><h4>Ruflo intégré</h4><p>Multi-agents, hooks, mémoire vectorielle.</p></div>
+    <div class="feature"><div class="feature-icon">💰</div><h4>-90% de coûts</h4><p>Haiku routing, prompt caching 1h, batch API.</p></div>
+    <div class="feature"><div class="feature-icon">🍎 🪟</div><h4>Mac + Windows</h4><p>Un seul installeur par profil.</p></div>
+  </div>
+
+  <h2 style="margin-bottom:24px">Choisir son profil</h2>
+  <div class="profiles">
+
+    <div class="card">
+      <div class="card-icon">🦁</div>
+      <h3>Profil Léo</h3>
+      <p>Accès technique complet + profil personnel. Pour collaborer et développer ses propres projets.</p>
+      <div class="tags">
+        <span class="tag">Technique</span>
+        <span class="tag green">GitHub complet</span>
+        <span class="tag">Gmail/Drive</span>
+      </div>
+      <div class="dl-group">
+        <a class="btn btn-win" href="downloads/install-leo.ps1" download>⊞ Windows</a>
+        <a class="btn btn-mac" href="downloads/install-leo.sh" download>⌘ macOS</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🎨</div>
+      <h3>Profil NonChalance</h3>
+      <p>Collaborateur documentation de l'app NonChalance. Lecture seule, jamais de push. Focus docs uniquement.</p>
+      <div class="tags">
+        <span class="tag yellow">Docs seulement</span>
+        <span class="tag yellow">Read-only</span>
+        <span class="tag">NonChalanceApp</span>
+      </div>
+      <div class="dl-group">
+        <a class="btn btn-win" href="downloads/install-nonchalance.ps1" download>⊞ Windows</a>
+        <a class="btn btn-mac" href="downloads/install-nonchalance.sh" download>⌘ macOS</a>
+      </div>
+    </div>
+
+  </div>
+
+  <section class="how">
+    <h2>Comment installer</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Télécharge l'installeur</h4>
+          <p>Choisis ton profil et ton OS ci-dessus.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Lancer l'installeur</h4>
+          <p><strong>Windows</strong> — ouvre PowerShell en admin :</p>
+          <pre>powershell -ExecutionPolicy Bypass -File .\install-leo.ps1</pre>
+          <p style="margin-top:10px"><strong>macOS</strong> — dans le terminal :</p>
+          <pre>bash install-leo.sh</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Entre ta clé API Anthropic</h4>
+          <p>L'installeur la demande automatiquement. Obtiens-la sur <a href="https://console.anthropic.com/settings/api-keys" style="color:var(--accent)">console.anthropic.com</a>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Lance Claude Code</h4>
+          <pre>claude</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Claude Boost · par <a href="https://github.com/jaroussssss" style="color:var(--accent)">jaroussssss</a> · 2026
+</footer>
+
+</body>
+</html>
