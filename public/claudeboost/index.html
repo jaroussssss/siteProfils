@@ -64,6 +64,30 @@
 <body>
 
 <header>
+  <div style="display:inline-flex;align-items:center;justify-content:center;margin-bottom:28px">
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 20px rgba(124,106,247,0.5))">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#7c6af7"/>
+          <stop offset="100%" stop-color="#4fd1c5"/>
+        </linearGradient>
+        <linearGradient id="g2" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#9d8fff"/>
+          <stop offset="100%" stop-color="#7eeee6"/>
+        </linearGradient>
+      </defs>
+      <!-- Fond arrondi -->
+      <rect width="72" height="72" rx="18" fill="url(#g1)" opacity="0.15"/>
+      <rect width="72" height="72" rx="18" fill="none" stroke="url(#g1)" stroke-width="1.5"/>
+      <!-- Éclair stylisé -->
+      <path d="M42 10L24 38h14L30 62l24-30H40L42 10Z" fill="url(#g2)" stroke="none"/>
+      <!-- Points circuit -->
+      <circle cx="14" cy="22" r="2.5" fill="#7c6af7" opacity="0.7"/>
+      <circle cx="58" cy="50" r="2.5" fill="#4fd1c5" opacity="0.7"/>
+      <circle cx="58" cy="22" r="1.5" fill="#7c6af7" opacity="0.4"/>
+      <circle cx="14" cy="50" r="1.5" fill="#4fd1c5" opacity="0.4"/>
+    </svg>
+  </div>
   <div class="badge">⚡ Claude Code Boosté · v1.0</div>
   <h1>Claude Boost</h1>
   <p>Un setup Claude Code préconfiguré, ultra-performant, avec scripts locaux et mémoire persistante.</p>
