@@ -55,13 +55,31 @@ sep
 echo "  [1/5]  Outils système..."
 
 if ! xcode-select -p &>/dev/null; then
-  echo "  Installation des outils Xcode (obligatoire)..."
+  echo "  Installation des outils système..."
   echo "  → Une fenêtre va s'ouvrir. Clique 'Installer' et attends."
+  echo "  → Si tu vois 'Not available from Software Update server' :"
+  echo "     Option A : Va dans l'App Store et installe Xcode"
+  echo "     Option B : https://developer.apple.com/download/all/ → cherche 'Command Line Tools'"
+  echo "     Puis relance ce script."
+  echo ""
   xcode-select --install 2>/dev/null || true
   echo ""
-  echo "  En attente de la fin de l'installation Xcode..."
+  echo "  En attente de la fin de l'installation..."
+  MAX_WAIT=1200; ELAPSED=0
   while ! xcode-select -p &>/dev/null; do
     sleep 10
+    ELAPSED=$((ELAPSED + 10))
+    # Détecter si l'erreur "not available" s'est produite (déduction : rien après 30s)
+    if [ "$ELAPSED" -eq 30 ] && ! xcode-select -p &>/dev/null; then
+      echo ""
+      echo "  ⚠️  Si une erreur 'Can't install the software' est apparue :"
+      echo "     1. Ferme la popup"
+      echo "     2. Ouvre l'App Store → cherche 'Xcode' → Installer"
+      echo "     3. Ou va sur : https://developer.apple.com/download/all/"
+      echo "     4. Une fois installé, relance ce script"
+      echo ""
+      echo "  En attente (peut prendre jusqu'à 15 min depuis l'App Store)..."
+    fi
     printf "."
   done
   echo ""
