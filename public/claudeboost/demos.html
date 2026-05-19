@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Démos — Claude Boost</title>
+<style>
+  :root {
+    --bg:#0f0f13;--surface:#1a1a24;--surface-2:#21212e;--border:#2a2a38;
+    --text:#e8e8ee;--text-dim:#9a9aa8;--accent:#7c6af7;--accent2:#4fd1c5;
+    --success:#10b981;--warning:#f59e0b;--radius:14px;--radius-sm:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',sans-serif;line-height:1.6;min-height:100vh}
+
+  .topbar{background:rgba(26,26,36,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 24px;position:sticky;top:0;z-index:100}
+  .topbar-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:600;font-size:16px}
+  .nav-links{display:flex;gap:6px;flex-wrap:wrap}
+  .nav-links a{color:var(--text-dim);text-decoration:none;padding:6px 12px;border-radius:var(--radius-sm);font-size:14px;transition:.2s}
+  .nav-links a:hover,.nav-links a.active{color:var(--text);background:var(--surface-2)}
+
+  .container{max-width:1100px;margin:0 auto;padding:48px 24px 80px}
+  .hero{text-align:center;margin-bottom:56px}
+  .hero h1{font-size:44px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px}
+  .hero p{color:var(--text-dim);font-size:17px;max-width:640px;margin:0 auto}
+
+  section{margin-bottom:56px}
+  section h2{font-size:26px;margin-bottom:8px;font-weight:600}
+  .section-sub{color:var(--text-dim);margin-bottom:24px;font-size:15px}
+
+  /* Terminal */
+  .terminal{background:#0a0a10;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:14px}
+  .term-header{background:var(--surface);padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+  .dot{width:12px;height:12px;border-radius:50%}
+  .dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
+  .term-title{margin-left:12px;color:var(--text-dim);font-size:12px}
+  .term-body{padding:20px;color:#d4d4dc;white-space:pre-wrap;line-height:1.55}
+  .term-body .p{color:var(--accent2)}.term-body .c{color:#fff}.term-body .o{color:#b8b8c4}
+  .term-body .ok{color:var(--success)}.term-body .acc{color:var(--accent)}.term-body .dim{color:var(--text-dim)}
+  .cursor{display:inline-block;width:8px;height:16px;background:var(--accent2);vertical-align:text-bottom;animation:blink 1s step-end infinite}
+  @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+
+  /* Demo cards */
+  .demo-grid{display:flex;flex-direction:column;gap:20px}
+  .demo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s}
+  .demo-card:hover{border-color:var(--accent)}
+  .demo-head{padding:18px 22px;border-bottom:1px solid var(--border)}
+  .demo-title{font-size:18px;font-weight:600;display:flex;align-items:center;gap:10px}
+  .demo-emoji{font-size:24px}
+  .demo-use{font-size:13px;color:var(--text-dim);margin-top:4px}
+  .demo-body{padding:18px 22px}
+  .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:8px;font-weight:600}
+  .lbl.r{color:var(--accent2);margin-top:18px}
+
+  .prompt-box{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;position:relative;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13.5px;color:#c8c8d0;white-space:pre-wrap;line-height:1.6}
+  .prompt-box.hc{padding-right:90px}
+  .copy-btn{position:absolute;top:10px;right:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;transition:.2s;opacity:.85}
+  .copy-btn:hover{opacity:1;transform:translateY(-1px)}
+  .copy-btn.ok{background:var(--success)}
+
+  .resp{background:#0a0a10;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 18px;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px;color:#cfcfd8;white-space:pre-wrap;line-height:1.65;overflow-x:auto}
+  .resp .lh{color:var(--accent2);font-weight:600}.resp .hd{color:#fff;font-weight:600}
+  .resp .em{color:var(--accent)}.resp .wn{color:var(--warning)}.resp .ok{color:var(--success)}.resp .dm{color:var(--text-dim)}
+
+  /* Commands table */
+  .cmd-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .cmd-table th,.cmd-table td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--border);font-size:14px}
+  .cmd-table th{background:var(--surface-2);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+  .cmd-table tr:last-child td{border-bottom:none}
+  .cmd-table code{background:var(--surface-2);color:var(--accent2);padding:3px 9px;border-radius:5px;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px}
+  .cmd-table td:last-child{color:var(--text-dim)}
+
+  /* Multi-agents */
+  .agents-stage{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+  .agents-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0}
+  .agent-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px;position:relative;overflow:hidden}
+  .agent-card::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:scan 2.4s ease-in-out infinite}
+  .agent-card.a2::before{animation-delay:.4s}.agent-card.a3::before{animation-delay:.8s}
+  @keyframes scan{0%{left:-100%}50%,100%{left:100%}}
+  .agent-name{font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px;font-size:14px}
+  .agent-pulse{width:8px;height:8px;border-radius:50%;background:var(--accent2);animation:pulse 1.6s ease-in-out infinite}
+  .agent-card.a2 .agent-pulse{animation-delay:.3s;background:var(--accent)}.agent-card.a3 .agent-pulse{animation-delay:.6s;background:var(--warning)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(79,209,197,.5)}70%{box-shadow:0 0 0 10px rgba(79,209,197,0)}100%{box-shadow:0 0 0 0 rgba(79,209,197,0)}}
+  .agent-task{color:var(--text-dim);font-size:12.5px;line-height:1.5}
+  .agent-arrow{text-align:center;color:var(--accent);font-size:24px;margin:8px 0}
+
+  .cta-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:40px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:var(--radius-sm);text-decoration:none;font-weight:500;font-size:14.5px;transition:.2s;border:1px solid var(--border)}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-primary:hover{background:#8d7df8;transform:translateY(-1px)}
+  .btn-ghost{background:var(--surface);color:var(--text)}.btn-ghost:hover{background:var(--surface-2)}
+
+  footer{border-top:1px solid var(--border);padding:28px 24px;text-align:center;color:var(--text-dim);font-size:13px}
+  footer a{color:var(--accent2);text-decoration:none}
+
+  @media(max-width:700px){.hero h1{font-size:32px}.container{padding:32px 16px 60px}.agents-row{grid-template-columns:1fr}.topbar{padding:12px 16px}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/claudeboost/" class="brand">
+      <svg width="22" height="22" viewBox="0 0 72 72" fill="none">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#7c6af7"/><stop offset="100%" stop-color="#4fd1c5"/></linearGradient></defs>
+        <rect width="72" height="72" rx="18" fill="url(#lg)" opacity="0.2"/>
+        <path d="M42 10L24 38h14L30 62l24-30H40L42 10Z" fill="url(#lg)"/>
+      </svg>
+      Claude Boost
+    </a>
+    <nav class="nav-links">
+      <a href="/claudeboost/">Accueil</a>
+      <a href="/claudeboost/tuto.html">Tuto</a>
+      <a href="/claudeboost/guide.html">Guide</a>
+      <a href="/claudeboost/demos.html" class="active">Démos</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="hero">
+    <h1>Démos pratiques</h1>
+    <p>Tout ce qu'on peut faire avec Claude Code une fois installé. Copiez-collez ces prompts directement dans votre terminal.</p>
+  </div>
+
+  <!-- 1. Lancer Claude Code -->
+  <section id="lancer">
+    <h2>1. Lancer Claude Code</h2>
+    <p class="section-sub">Ouvrez un terminal et tapez <code style="background:var(--surface-2);padding:2px 8px;border-radius:5px;color:var(--accent2)">claude</code>. Vous entrez dans une session interactive.</p>
+    <div class="terminal">
+      <div class="term-header">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="term-title">~ — claude</span>
+      </div>
+      <div class="term-body"><span class="p">$</span> <span class="c">claude</span>
+
+<span class="acc">╭──────────────────────────────────────────────╮</span>
+<span class="acc">│</span>  <span class="ok">✻</span>  <span class="c">Welcome to Claude Code</span>                     <span class="acc">│</span>
+<span class="acc">│</span>                                               <span class="acc">│</span>
+<span class="acc">│</span>  <span class="dim">/help pour l'aide  •  /exit pour quitter</span>     <span class="acc">│</span>
+<span class="acc">╰──────────────────────────────────────────────╯</span>
+
+<span class="dim">Posez votre question, collez un document, décrivez votre besoin.</span>
+
+<span class="p">›</span> <span class="cursor"></span></div>
+    </div>
+  </section>
+
+  <!-- 2. 6 démos -->
+  <section id="demos">
+    <h2>2. Copiez-collez ces prompts</h2>
+    <p class="section-sub">Six exemples concrets et testés. Cliquez "Copier" et collez dans Claude Code.</p>
+    <div class="demo-grid">
+
+      <!-- Email -->
+      <article class="demo-card">
+        <div class="demo-head">
+          <div class="demo-title"><span class="demo-emoji">✉️</span> Rédaction email</div>
+          <div class="demo-use">Relancer un client sans paraître pressant.</div>
+        </div>
+        <div class="demo-body">
+          <div class="lbl">Prompt à copier</div>
+          <div class="prompt-box hc"><button class="copy-btn" data-copy="Rédige un email de relance pour un client qui n'a pas répondu depuis 2 semaines à notre devis de 3500€. Ton professionnel mais chaleureux.">Copier</button>Rédige un email de relance pour un client qui n'a pas répondu depuis 2 semaines à notre devis de 3500€. Ton professionnel mais chaleureux.</div>
+          <div class="lbl r">Réponse de Claude</div>
+          <div class="resp"><span class="hd">Objet :</span> Suite à notre proposition — un point rapide ?
+
+Bonjour [Prénom],
+
+J'espère que vous allez bien. Je reviens vers vous suite à notre échange du [date]
+et au devis de <span class="em">3 500 €</span> que je vous avais transmis pour [projet].
+
+Sans nouvelle de votre côté, j'imagine que vous êtes pris par d'autres priorités.
+Je voulais juste m'assurer que le document vous est bien parvenu et voir si vous
+aviez des questions ou des ajustements à demander.
+
+Je reste disponible pour un appel de 15 minutes si vous préférez en discuter.
+
+Au plaisir,
+<span class="dm">[Votre prénom] — [Entreprise]</span></div>
+        </div>
+      </article>
+
+      <!-- Analyse doc -->
+      <article class="demo-card">
+        <div class="demo-head">
+          <div class="demo-title"><span class="demo-emoji">📄</span> Analyse de document</div>
+          <div class="demo-use">Décortiquer un contrat ou un long document en quelques secondes.</div>
+        </div>
+        <div class="demo-body">
+          <div class="lbl">Prompt à copier</div>
+          <div class="prompt-box hc"><button class="copy-btn" data-copy="Voici un extrait de contrat : [COLLER VOTRE TEXTE]. Résume les 5 points clés et signale les clauses à risque.">Copier</button>Voici un extrait de contrat : [COLLER VOTRE TEXTE]. Résume les 5 points clés et signale les clauses à risque.</div>
+          <div class="lbl r">Réponse de Claude</div>
+          <div class="resp"><span class="hd">📌 5 points clés</span>
+
+  1. <span class="em">Durée</span> — 24 mois, reconduction tacite par périodes de 12 mois.
+  2. <span class="em">Paiement</span> — 30 % à la commande, solde à 30 jours fin de mois.
+  3. <span class="em">Propriété intellectuelle</span> — cession totale au client à la livraison.
+  4. <span class="em">Confidentialité</span> — engagement sur 5 ans après la fin du contrat.
+  5. <span class="em">Résiliation</span> — préavis de 3 mois, indemnité de 20 % du restant dû.
+
+<span class="wn">⚠️ Clauses à risque</span>
+
+  <span class="wn">•</span> Art. 8.2 — pénalité de retard <span class="wn">2 % par jour</span> → négociable à 0,1 %/jour.
+  <span class="wn">•</span> Art. 11 — juridiction <span class="wn">tribunal distant</span> → demander tribunal de votre siège.
+  <span class="wn">•</span> Art. 14 — modification <span class="wn">unilatérale</span> → à encadrer (préavis + droit de résilier).</div>
+        </div>
+      </article>
+
+      <!-- Planning -->
+      <article class="demo-card">
+        <div class="demo-head">
+          <div class="demo-title"><span class="demo-emoji">🗓️</span> Planning de semaine</div>
+          <div class="demo-use">Organiser une semaine chargée en quelques secondes.</div>
+        </div>
+        <div class="demo-body">
+          <div class="lbl">Prompt à copier</div>
+          <div class="prompt-box hc"><button class="copy-btn" data-copy="Voici mes tâches de la semaine : présentation vendredi, rapport lundi, 3 réunions mardi, suivi clients. Crée un planning optimisé jour par jour.">Copier</button>Voici mes tâches de la semaine : présentation vendredi, rapport lundi, 3 réunions mardi, suivi clients. Crée un planning optimisé jour par jour.</div>
+          <div class="lbl r">Réponse de Claude</div>
+          <div class="resp"><span class="em">LUNDI</span> — Production calme
+  09:00–12:00  Rédaction du rapport (deep work)
+  14:00–17:00  Démarrage préparation présentation
+
+<span class="em">MARDI</span> — Réunions groupées
+  09:30–15:30  3 réunions (bloquées en séquence)
+  16:00–17:00  Suivi clients rapide
+
+<span class="em">MERCREDI–JEUDI</span> — Présentation
+  Itérations slides + répétitions chronométrées
+
+<span class="em">VENDREDI</span>
+  10:00  <span class="ok">▶ PRÉSENTATION</span>
+  14:00  Débrief + clôture semaine
+
+<span class="dm">💡 Règle appliquée : un seul "gros morceau" par jour.</span></div>
+        </div>
+      </article>
+
+      <!-- Multi-experts -->
+      <article class="demo-card">
+        <div class="demo-head">
+          <div class="demo-title"><span class="demo-emoji">🧠</span> Conseil multi-experts</div>
+          <div class="demo-use">Obtenir plusieurs points de vue avant une décision importante.</div>
+        </div>
+        <div class="demo-body">
+          <div class="lbl">Prompt à copier</div>
+          <div class="prompt-box hc"><button class="copy-btn" data-copy="Réunis un expert marketing et un expert finance pour me dire si je dois lancer une offre premium à 99€/mois ou rester sur du freemium.">Copier</button>Réunis un expert marketing et un expert finance pour me dire si je dois lancer une offre premium à 99€/mois ou rester sur du freemium.</div>
+          <div class="lbl r">Réponse de Claude</div>
+          <div class="resp"><span class="lh">🎯 Expert Marketing</span>
+
+Le freemium attire le volume. Sans premium, vous laissez partir les 2 % de
+power users prêts à payer. Lancez le premium <span class="em">en parallèle</span> du free.
+
+<span class="lh">💰 Expert Finance</span>
+
+À 99 €/mois, il faut ~85 clients premium pour atteindre 10 k€ de MRR.
+Vérifiez que le CAC reste < 1/3 du LTV avant de scaler.
+
+<span class="lh">⚖️ Synthèse</span>
+
+  <span class="ok">✓</span> Lancez à <span class="em">79 €/mois</span> (early adopters, 3 mois) puis 99 €.
+  <span class="ok">✓</span> KPI à surveiller : conversion free → premium, churn M+1, NPS.
+  <span class="ok">✓</span> Décision à revoir à T+90 jours selon les chiffres réels.</div>
+        </div>
+      </article>
+
+      <!-- LinkedIn -->
+      <article class="demo-card">
+        <div class="demo-head">
+          <div class="demo-title"><span class="demo-emoji">💼</span> Posts LinkedIn x3</div>
+          <div class="demo-use">Décliner un même message en plusieurs tons.</div>
+        </div>
+        <div class="demo-body">
+          <div class="lbl">Prompt à copier</div>
+          <div class="prompt-box hc"><button class="copy-btn" data-copy="Transforme ce résumé en 3 posts LinkedIn différents (informatif, inspirationnel, storytelling) : [ton résumé ici]">Copier</button>Transforme ce résumé en 3 posts LinkedIn différents (informatif, inspirationnel, storytelling) : [ton résumé ici]</div>
+          <div class="lbl r">Réponse de Claude (3 variantes)</div>
+          <div class="resp"><span class="hd">▸ Informatif</span> — chiffres et faits concrets
+<span class="hd">▸ Inspirationnel</span> — conviction et impact
+<span class="hd">▸ Storytelling</span> — anecdote + leçon
+
+→ Chaque post : accroche forte, corps, CTA, 3 hashtags ciblés.</div>
+        </div>
+      </article>
+
+      <!-- Debug -->
+      <article class="demo-card">
+        <div class="demo-head">
+          <div class="demo-title"><span class="demo-emoji">🐛</span> Debug rapide</div>
+          <div class="demo-use">Comprendre une erreur incompréhensible en 10 secondes.</div>
+        </div>
+        <div class="demo-body">
+          <div class="lbl">Prompt à copier</div>
+          <div class="prompt-box hc"><button class="copy-btn" data-copy="Mon script plante avec cette erreur : [coller l'erreur]. Explique ce qui se passe et corrige.">Copier</button>Mon script plante avec cette erreur : [coller l'erreur]. Explique ce qui se passe et corrige.</div>
+          <div class="lbl r">Réponse de Claude</div>
+          <div class="resp"><span class="hd">🔍 Diagnostic</span>
+
+L'erreur signifie [explication en français simple].
+
+<span class="hd">✘ Code en cause</span>  → [extrait problématique]
+
+<span class="hd">✓ Code corrigé</span>   → [correction + explication]
+
+<span class="hd">💡 Bonne pratique</span> → [conseil pour éviter à l'avenir]</div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- 3. Commandes -->
+  <section id="commandes">
+    <h2>3. Commandes utiles dans Claude Code</h2>
+    <p class="section-sub">Tapez ces commandes à tout moment pendant une session.</p>
+    <table class="cmd-table">
+      <thead><tr><th style="width:28%">Commande</th><th>Ce qu'elle fait</th></tr></thead>
+      <tbody>
+        <tr><td><code>/help</code></td><td>Affiche la liste de toutes les commandes disponibles.</td></tr>
+        <tr><td><code>/config</code></td><td>Paramètres : modèle, thème, clé API, permissions.</td></tr>
+        <tr><td><code>/clear</code></td><td>Efface l'historique de la conversation (économise des tokens).</td></tr>
+        <tr><td><code>/memory</code></td><td>Ouvre le fichier CLAUDE.md pour ajouter des préférences persistantes.</td></tr>
+        <tr><td><code>/review</code></td><td>Lance une revue automatique du code modifié.</td></tr>
+        <tr><td><code>/exit</code></td><td>Quitte proprement la session et revient au terminal.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4. Multi-agents -->
+  <section id="multi-agents">
+    <h2>4. Le conseil multi-agents</h2>
+    <p class="section-sub">Claude Code peut faire travailler plusieurs "agents" en parallèle — chacun avec son rôle — et synthétiser leurs analyses.</p>
+
+    <div class="agents-stage">
+      <div class="lbl">Prompt à copier</div>
+      <div class="prompt-box hc"><button class="copy-btn" data-copy="Lance 3 experts en parallèle sur cette question : 'Faut-il que j'embauche un commercial à 45k€ ou que j'investisse dans Google Ads ?'. Expert RH, expert finance, expert growth. Puis fais la synthèse.">Copier</button>Lance 3 experts en parallèle sur cette question : "Faut-il que j'embauche un commercial à 45k€ ou que j'investisse dans Google Ads ?". Expert RH, expert finance, expert growth. Puis fais la synthèse.</div>
+
+      <div class="agents-row">
+        <div class="agent-card a1">
+          <div class="agent-name"><span class="agent-pulse"></span> Agent RH</div>
+          <div class="agent-task">Évalue le coût total réel d'un commercial (salaire chargé, ramp-up 6 mois)…</div>
+        </div>
+        <div class="agent-card a2">
+          <div class="agent-name"><span class="agent-pulse"></span> Agent Finance</div>
+          <div class="agent-task">Compare le ROI 12 mois des deux options et calcule le seuil de rentabilité…</div>
+        </div>
+        <div class="agent-card a3">
+          <div class="agent-name"><span class="agent-pulse"></span> Agent Growth</div>
+          <div class="agent-task">Analyse les canaux d'acquisition et la maturité du funnel commercial…</div>
+        </div>
+      </div>
+
+      <div class="agent-arrow">↓</div>
+
+      <div class="resp"><span class="lh">🧩 Synthèse de l'équipe</span>
+
+  <span class="em">RH</span>      → Coût chargé : ~65 k€/an. Productif vers M+6.
+  <span class="em">Finance</span> → Rentabiliser = 130 k€ CA additionnel min sur 12 mois.
+  <span class="em">Growth</span>  → Funnel pas encore optimisé — un commercial sans leads n'a rien à traiter.
+
+  <span class="ok">✓ Recommandation finale</span>
+
+  Étape 1 (M1–3) : <span class="em">8–12 k€ en Google Ads</span> pour générer du flux et tester le messaging.
+  Étape 2 (M4)   : si le funnel convertit, recruter le commercial avec des leads chauds.
+
+  <span class="dm">→ Validez le marché avant d'embaucher.</span></div>
+    </div>
+
+    <div class="cta-row">
+      <a href="/claudeboost/tuto.html" class="btn btn-primary">📘 Tuto installation</a>
+      <a href="/claudeboost/guide.html" class="btn btn-ghost">🧭 Guide non-devs</a>
+      <a href="/claudeboost/" class="btn btn-ghost">← Accueil</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Claude Boost · par <a href="https://github.com/jaroussssss">jaroussssss</a> · 2026
+</footer>
+
+<script>
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const text = btn.getAttribute('data-copy');
+    try { await navigator.clipboard.writeText(text); } catch(e) {}
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copié';
+    btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('ok'); }, 1800);
+  });
+});
+</script>
+</body>
+</html>
