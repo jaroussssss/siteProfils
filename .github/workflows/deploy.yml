@@ -28,7 +28,7 @@ jobs:
             npm ci --omit=dev --silent 2>/dev/null || true
             mkdir -p tmp && touch tmp/restart.txt
             mkdir -p ~/ClaudeBoost/public/downloads
-            cp ~/SiteProfils/public/claudeboost/index.html ~/ClaudeBoost/public/
+            cp ~/SiteProfils/public/claudeboost/*.html ~/ClaudeBoost/public/
             cp ~/SiteProfils/public/claudeboost/downloads/* ~/ClaudeBoost/public/downloads/
             touch ~/ClaudeBoost/tmp/restart.txt
             echo "Deploy OK $(date)"
