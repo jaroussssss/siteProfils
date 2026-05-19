@@ -15,15 +15,18 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
+          envs: GH_PAT
           script: |
             set -e
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             if [ ! -d ~/siteprofils ]; then
-              git clone https://github.com/jaroussssss/siteProfils.git ~/siteprofils
+              git clone https://$GH_PAT@github.com/jaroussssss/siteProfils.git ~/siteprofils
             fi
             cd ~/siteprofils
-            git pull origin main
+            git pull https://$GH_PAT@github.com/jaroussssss/siteProfils.git main
             [ -f package.json ] && npm ci --omit=dev --silent || true
             touch tmp/restart.txt 2>/dev/null || true
             echo "siteProfils deploye $(date)"
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
