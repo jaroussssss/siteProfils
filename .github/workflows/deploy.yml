@@ -25,8 +25,8 @@ jobs:
             fi
             cd ~/siteprofils
             git pull https://$GH_PAT@github.com/jaroussssss/siteProfils.git main
-            [ -f package.json ] && npm ci --omit=dev --silent || true
-            touch tmp/restart.txt 2>/dev/null || true
-            echo "siteProfils deploye $(date)"
+            npm ci --omit=dev --silent 2>/dev/null || true
+            pm2 restart siteprofils 2>/dev/null || pm2 start server.js --name siteprofils
+            echo "Done $(date)"
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
