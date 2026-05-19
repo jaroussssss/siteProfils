@@ -37,11 +37,15 @@
     .tag.green { background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.3); color: var(--green); }
     .tag.yellow { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: var(--yellow); }
 
-    .dl-group { display: flex; gap: 10px; }
-    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .dl-group { display: flex; gap: 10px; flex-direction: column; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 10px; font-size: 0.88rem; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: opacity 0.15s; width: 100%; justify-content: space-between; }
     .btn:hover { opacity: 0.85; }
     .btn-win { background: #0078d4; color: #fff; }
-    .btn-mac { background: #555; color: #fff; }
+    .btn-mac { background: #444; color: #fff; }
+    .btn-copy { background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: monospace; font-size: 0.78rem; text-align: left; white-space: nowrap; overflow: hidden; padding: 8px 12px; }
+    .btn-copy:hover { border-color: var(--accent); }
+    .btn-copy span { overflow: hidden; text-overflow: ellipsis; flex: 1; }
+    .copy-badge { background: var(--accent); color: #fff; border-radius: 4px; padding: 2px 7px; font-size: 0.72rem; font-family: sans-serif; flex-shrink: 0; }
 
     section.how { margin-bottom: 60px; }
     section h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; }
@@ -95,10 +99,9 @@
 
 <main>
 
-  <div style="background:#2a1a0a;border:1px solid #7c5a1a;border-radius:12px;padding:16px 20px;margin-bottom:32px;font-size:0.88rem;color:#f2cc8f;">
-    <strong>⚠️ Windows SmartScreen</strong> peut bloquer le téléchargement des scripts .ps1 (faux positif). Si c'est le cas :
-    clic droit sur le fichier → <strong>Propriétés</strong> → cocher <strong>"Débloquer"</strong> → OK.
-    Les scripts sont open-source et vérifiables sur <a href="https://github.com/jaroussssss/siteProfils/tree/main/public/claudeboost/downloads" style="color:#f2cc8f">GitHub</a>.
+  <div style="background:#0d1f0d;border:1px solid #2a5a2a;border-radius:12px;padding:16px 20px;margin-bottom:32px;font-size:0.88rem;color:#a8e6a8;">
+    <strong>⊞ Windows</strong> : clique le bouton "Copier", ouvre <strong>PowerShell en administrateur</strong> et colle. La commande s'exécute sans télécharger de fichier — aucun blocage SmartScreen.<br>
+    <span style="opacity:0.7;font-size:0.82rem">Scripts open-source : <a href="https://github.com/jaroussssss/siteProfils/tree/main/public/claudeboost/downloads" style="color:#a8e6a8">voir sur GitHub</a></span>
   </div>
 
   <div class="features">
@@ -123,8 +126,10 @@
         <span class="tag">Gmail/Drive</span>
       </div>
       <div class="dl-group">
-        <a class="btn btn-win" href="downloads/install-leo.ps1" download>⊞ Windows</a>
-        <a class="btn btn-mac" href="downloads/install-leo.sh" download>⌘ macOS</a>
+        <button class="btn btn-copy" onclick="copyCmd(this,'Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://tempcestlouisquirac.fr/claudeboost/downloads/install-leo.ps1 | iex')">
+          <span>⊞  PowerShell admin → coller</span><span class="copy-badge">Copier</span>
+        </button>
+        <a class="btn btn-mac" href="downloads/install-leo.sh" download>⌘ macOS — télécharger</a>
       </div>
     </div>
 
@@ -138,8 +143,10 @@
         <span class="tag">NonChalanceApp</span>
       </div>
       <div class="dl-group">
-        <a class="btn btn-win" href="downloads/install-nonchalance.ps1" download>⊞ Windows</a>
-        <a class="btn btn-mac" href="downloads/install-nonchalance.sh" download>⌘ macOS</a>
+        <button class="btn btn-copy" onclick="copyCmd(this,'Set-ExecutionPolicy Bypass -Scope Process -Force; irm https://tempcestlouisquirac.fr/claudeboost/downloads/install-nonchalance.ps1 | iex')">
+          <span>⊞  PowerShell admin → coller</span><span class="copy-badge">Copier</span>
+        </button>
+        <a class="btn btn-mac" href="downloads/install-nonchalance.sh" download>⌘ macOS — télécharger</a>
       </div>
     </div>
 
@@ -188,5 +195,15 @@
   Claude Boost · par <a href="https://github.com/jaroussssss" style="color:var(--accent)">jaroussssss</a> · 2026
 </footer>
 
+<script>
+function copyCmd(btn, cmd) {
+  navigator.clipboard.writeText(cmd).then(() => {
+    const badge = btn.querySelector('.copy-badge');
+    badge.textContent = '✓ Copié';
+    badge.style.background = '#4ade80';
+    setTimeout(() => { badge.textContent = 'Copier'; badge.style.background = ''; }, 2000);
+  });
+}
+</script>
 </body>
 </html>
