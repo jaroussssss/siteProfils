@@ -10,5 +10,18 @@
     "deny": [
       "Bash(rm -rf /)", "Bash(sudo *)"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $HOME/.claude/hooks/auto-update.sh",
+            "timeout": 8000
+          }
+        ]
+      }
+    ]
   }
 }

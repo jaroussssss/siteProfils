@@ -24,6 +24,12 @@ Si la mémoire `user_leo.md` est vide ou minimale, lance `/onboarding` naturelle
 - `/revenue-check` — Analyse les chiffres OnlyFans
 - `/onboarding` — Relance les questions de découverte
 
+## Skills disponibles
+- `creator-management` — Audit complet créatrice + plan d'action 30j + templates DMs personnalisés. Invoque-le quand Leo demande d'analyser ou onboarder une créatrice.
+
+## Hooks actifs
+- `SessionStart auto-update` — Pull silencieux de la dernière config depuis GitHub à chaque démarrage de session (max 1x/heure). Garde la mémoire intacte.
+
 ## Ce que tu peux aussi faire
 - Calendriers de contenu par créatrice
 - Analyse stats (conversion, churn, best hours, LTV)

@@ -132,6 +132,8 @@ rm -rf "$TMP_REPO"
 if git clone --depth 1 "$CONFIG_REPO" "$TMP_REPO" 2>/dev/null; then
   cp -R "$TMP_REPO/$CONFIG_SUBDIR/"* "$CLAUDE_DIR/" 2>/dev/null
   rm -rf "$TMP_REPO"
+  # Rendre exécutables tous les hooks
+  [ -d "$CLAUDE_DIR/hooks" ] && chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null
   ok "Config copiée depuis GitHub"
   ok "Fichiers : $(ls "$CLAUDE_DIR" | tr '\n' ' ')"
 else
@@ -167,6 +169,8 @@ echo "   • Claude Code CLI"
 echo "   • Ruflo (claude-flow) pour les workflows multi-agents"
 echo "   • MCPs : context7 (docs live) + playwright (browser auto)"
 echo "   • Commandes slash : /dm-template /content-plan /revenue-check /onboarding"
+echo "   • Skill /creator-management (audit créatrice + plan 30j)"
+echo "   • Hook auto-update : config GitHub pull automatique au démarrage"
 echo "   • Profil + mémoire pré-configurés"
 echo ""
 echo "  PROCHAINES ÉTAPES :"
