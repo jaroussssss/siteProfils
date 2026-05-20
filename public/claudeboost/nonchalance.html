@@ -43,6 +43,22 @@
     .btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 24px; color: var(--text); text-decoration: none; font-weight: 600; transition: border-color .15s; }
     .btn-secondary:hover { border-color: var(--nc); }
 
+    /* ── Differentiateurs ── */
+    .diff-strip { background: var(--bg-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 52px 24px; }
+    .diff-inner { max-width: 920px; margin: 0 auto; }
+    .diff-eyebrow { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .14em; color: var(--nc); font-weight: 700; text-align: center; margin-bottom: 10px; }
+    .diff-title { font-family: var(--serif); font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; text-align: center; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .diff-sub { text-align: center; color: var(--muted); font-size: 0.95rem; max-width: 520px; margin: 0 auto 40px; line-height: 1.7; }
+    .diff-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .diff-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: relative; overflow: hidden; transition: border-color .2s; }
+    .diff-card:hover { border-color: rgba(224,122,95,.4); }
+    .diff-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--nc), var(--nc2)); opacity: 0; transition: opacity .2s; }
+    .diff-card:hover::before { opacity: 1; }
+    .diff-icon { font-size: 1.6rem; margin-bottom: 14px; }
+    .diff-card h3 { font-size: 0.97rem; margin-bottom: 8px; line-height: 1.3; }
+    .diff-card p { color: var(--muted); font-size: 0.82rem; line-height: 1.6; }
+    .diff-tag { display: inline-block; background: rgba(224,122,95,.12); border: 1px solid rgba(224,122,95,.25); border-radius: 99px; padding: 2px 10px; font-size: 0.68rem; color: var(--nc); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-top: 12px; }
+
     /* ── Scenarios ── */
     main { max-width: 920px; margin: 0 auto; padding: 64px 24px 80px; }
     .section-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--nc); font-weight: 700; margin-bottom: 12px; }
@@ -174,9 +190,9 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-tag"><span></span> Disponible maintenant · No-code</div>
-  <h1>Tu es en réunion.<br><em>Claude gère le reste.</em></h1>
-  <p class="hero-sub">Envoie des mails depuis ton téléphone, génère des docs en 30 secondes, comprends le code sans l'ouvrir — sans jamais toucher une ligne de code.</p>
+  <div class="hero-tag"><span></span> Branché sur le vrai projet · No-code</div>
+  <h1>Ton assistant,<br><em>sur le projet réel.</em></h1>
+  <p class="hero-sub">Claude est connecté au code source de NonChalance en direct. Docs toujours à jour, retours instantanés, mails envoyés depuis ton téléphone — sans jamais toucher une ligne de code.</p>
   <div class="hero-stats">
     <div class="stat">
       <div class="stat-num">47<span style="font-size:1.2rem">min</span></div>
@@ -196,6 +212,46 @@
     <a href="/claudeboost/chat.html" class="btn-secondary">Essayer l'interface web</a>
   </div>
 </section>
+
+<!-- DIFFERENCIATEURS -->
+<div class="diff-strip">
+  <div class="diff-inner">
+    <div class="diff-eyebrow">Pourquoi c'est unique</div>
+    <h2 class="diff-title">Ce que personne d'autre ne propose</h2>
+    <p class="diff-sub">Pas un chatbot générique. Un assistant branché sur votre repo GitHub réel, vos outils, votre équipe.</p>
+    <div class="diff-grid">
+
+      <div class="diff-card">
+        <div class="diff-icon">🔗</div>
+        <h3>Connecté au repo GitHub en direct</h3>
+        <p>Claude lit le code réel à chaque réponse. La doc qu'il génère reflète exactement ce qui est implémenté — jamais du générique, jamais du périmé.</p>
+        <span class="diff-tag">Unique</span>
+      </div>
+
+      <div class="diff-card">
+        <div class="diff-icon">📱</div>
+        <h3>Interface interactive depuis ton téléphone</h3>
+        <p>Accède à l'assistant directement depuis ton navigateur mobile. Prompts en réunion, retours terrain, tickets créés en 10 secondes — ça marche vraiment.</p>
+        <span class="diff-tag">Live</span>
+      </div>
+
+      <div class="diff-card">
+        <div class="diff-icon">↩️</div>
+        <h3>Retours directs au dev via Claude Code</h3>
+        <p>Un retour UX, une idée, un bug constaté ? Claude crée le ticket GitHub structuré et l'envoie au développeur. Zéro friction entre le terrain et le code.</p>
+        <span class="diff-tag">Intégré</span>
+      </div>
+
+      <div class="diff-card">
+        <div class="diff-icon">✉️</div>
+        <h3>Gmail avec privilèges élevés</h3>
+        <p>Envoi de mails à l'équipe en une phrase, depuis n'importe quel appareil. Accès complet à ta boîte pour retrouver un contact ou un thread — non disponible sur le marché à ce niveau d'intégration.</p>
+        <span class="diff-tag">Exclusif</span>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <main>
 
