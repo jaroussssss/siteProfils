@@ -31,6 +31,9 @@ REPO_URL="https://github.com/jaroussssss/NonChalanceApp.git"
 ARCH=$(uname -m)
 BREW_PREFIX=$([[ "$ARCH" = "arm64" ]] && echo "/opt/homebrew" || echo "/usr/local")
 
+# Créer les dossiers critiques immédiatement (avant toute étape pouvant échouer)
+mkdir -p "$CLAUDE_DIR"
+
 touch "$LOG" 2>/dev/null || { echo "Erreur : impossible d'écrire dans $HOME"; exit 1; }
 exec > >(tee -a "$LOG") 2>&1
 echo "=== Installation démarrée le $(date) ==="

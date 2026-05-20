@@ -18,6 +18,9 @@ CLAUDE_DIR="$HOME/.claude"
 NPM_GLOBAL="$HOME/.npm-global"
 LOG="$HOME/claude-boost-install.log"
 
+# Créer les dossiers critiques immédiatement (avant toute étape pouvant échouer)
+mkdir -p "$CLAUDE_DIR"
+
 # Tout logger dans un fichier pour debug
 exec > >(tee -a "$LOG") 2>&1
 echo "=== Démarrage $(date) ==="
@@ -48,6 +51,7 @@ else
 fi
 echo ""
 ok "Répertoire d'installation : $INSTALL_ROOT"
+mkdir -p "$INSTALL_ROOT"
 echo ""
 
 # ── 1. Xcode Command Line Tools ───────────────────────────────────────────────
