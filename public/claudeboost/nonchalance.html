@@ -85,12 +85,12 @@
     .copy-chip { position: absolute; top: 8px; right: 8px; background: var(--nc); color: #fff; border: none; border-radius: 6px; padding: 3px 10px; font-size: 0.7rem; cursor: pointer; font-family: inherit; transition: .15s; }
     .copy-chip:hover { opacity: .85; }
     .copy-chip.ok { background: var(--green); }
-    .response-block { background: #110d09; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 0.79rem; color: #e8dfd4; white-space: pre-wrap; max-height: 260px; overflow-y: auto; line-height: 1.65; }
-    .response-block .hd { color: #faf7f2; font-weight: 600; font-family: var(--serif); font-size: 0.88rem; }
-    .response-block .hl { color: var(--nc2); }
+    .response-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; font-family: -apple-system,'Segoe UI',sans-serif; font-size: 0.85rem; color: var(--text); white-space: pre-wrap; max-height: 260px; overflow-y: auto; line-height: 1.7; }
+    .response-block .hd { color: var(--nc2); font-weight: 700; font-family: var(--serif); font-size: 0.92rem; }
+    .response-block .hl { color: var(--nc2); font-weight: 600; }
     .response-block .ok { color: var(--green); }
-    .response-block .dim { color: var(--muted); }
-    .response-block .nc { color: var(--nc); }
+    .response-block .dim { color: var(--muted); font-size: 0.8rem; }
+    .response-block .nc { color: var(--nc); font-weight: 600; }
 
     /* ── Time savings bar ── */
     .savings-section { background: linear-gradient(135deg, rgba(224,122,95,.08), rgba(242,204,143,.04)); border: 1px solid rgba(224,122,95,.2); border-radius: 20px; padding: 40px; margin-bottom: 72px; }
@@ -391,8 +391,8 @@ MariaDB · Vanilla JS frontend
         <div class="scenario-head">
           <div class="scenario-icon">📣</div>
           <div class="scenario-meta">
-            <h3>Changelog client depuis les commits, sans jargon tech</h3>
-            <p>La mise à jour est prête. Claude transforme les commits en texte lisible pour tes clients, en 20 secondes.</p>
+            <h3>Résumé des nouveautés pour tes clients, en 20 secondes</h3>
+            <p>On a livré des améliorations ce mois-ci. Tu veux prévenir tes clients sans écrire un email de zéro — Claude le fait depuis ce qui a changé dans l'app.</p>
           </div>
           <span class="scenario-badge">⚡ 20 sec</span>
         </div>
@@ -400,7 +400,7 @@ MariaDB · Vanilla JS frontend
           <div class="sc-side">
             <div class="sc-label">Tu tapes</div>
             <div class="prompt-bubble">
-              <button class="copy-chip" onclick="copyPoc(this)">Copier</button>Regarde les commits depuis le 10 mai et écris un changelog pour nos clients. Simple, sans jargon, avec des emojis. Style newsletter.</div>
+              <button class="copy-chip" onclick="copyPoc(this)">Copier</button>Résume tout ce qui a changé dans l'app ce mois-ci pour nos clients. Style sympa, emojis, facile à lire pour quelqu'un qui n'est pas technique.</div>
           </div>
           <div class="sc-side">
             <div class="sc-label res">Claude rédige</div>
@@ -471,7 +471,8 @@ clavier natif iOS sur le formulaire de devis.
   <!-- GAINS DE TEMPS -->
   <div class="savings-section">
     <div class="section-label">Gain de temps</div>
-    <h2 class="section-title">Ce que ça représente vraiment</h2>
+    <h2 class="section-title">Un temps monstre. Quasiment free to use.</h2>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:28px;max-width:500px">47 minutes économisées par semaine en moyenne. Sur un abonnement Claude à 20€/mois, chaque minute économisée vaut quelques centimes. Le calcul est rapide.</p>
     <div class="savings-grid">
       <div class="saving-item">
         <div class="saving-time">2 min</div>
@@ -491,7 +492,7 @@ clavier natif iOS sur le formulaire de devis.
       <div class="saving-item">
         <div class="saving-time">20 s</div>
         <div class="saving-bar"><div class="saving-fill" style="width:2%"></div></div>
-        <div class="saving-task">Changelog client depuis les commits</div>
+        <div class="saving-task">Résumé des nouveautés pour les clients</div>
       </div>
     </div>
   </div>
@@ -499,7 +500,7 @@ clavier natif iOS sur le formulaire de devis.
   <!-- HOW IT WORKS -->
   <div class="how">
     <div class="section-label">Comment ça marche</div>
-    <h2 class="section-title">Simple. Vraiment.</h2>
+    <h2 class="section-title">5 minutes pour installer, des heures économisées chaque semaine.</h2>
     <p class="section-sub">Pas d'interface complexe. Tu parles — Claude exécute.</p>
 
     <div class="steps-flow">
@@ -515,8 +516,8 @@ clavier natif iOS sur le formulaire de devis.
         <div class="flow-left"><div class="flow-num">2</div><div class="flow-line"></div></div>
         <div class="flow-body">
           <h4>Tu ouvres Claude depuis n'importe où</h4>
-          <p>Terminal, interface web, téléphone. <code>cd ~/NonChalanceApp && claude</code> — Claude se connecte au projet automatiquement.</p>
-          <div class="flow-example">Ou via l'interface web depuis ton navigateur mobile.</div>
+          <p>Interface web sur mobile, ou app sur ordi. Claude se connecte automatiquement au projet — tu n'as rien à configurer à chaque fois.</p>
+          <div class="flow-example">Depuis ton navigateur, ton téléphone, n'importe quand.</div>
         </div>
       </div>
       <div class="flow-step">
