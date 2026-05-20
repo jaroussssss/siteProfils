@@ -209,18 +209,41 @@ if [ -d "$CLAUDE_DIR/hooks" ]; then
   find "$CLAUDE_DIR/hooks" -type f -exec chmod +x {} \; 2>/dev/null
 fi
 
+# Pull aussi la skills-library partagée (Gmail, Drive, Git, etc.)
+TMP_REPO_LIB="${TMPDIR:-/tmp}/claudeboost-lib-$$"
+rm -rf "$TMP_REPO_LIB"
+if git clone --depth 1 --quiet "$CONFIG_REPO" "$TMP_REPO_LIB" 2>/dev/null; then
+  if [ -d "$TMP_REPO_LIB/public/claudeboost/skills-library" ]; then
+    mkdir -p "$CLAUDE_DIR/skills"
+    cp -Rfp "$TMP_REPO_LIB/public/claudeboost/skills-library/"* "$CLAUDE_DIR/skills/" 2>/dev/null
+    ok "Skills-library partagés copiés"
+  fi
+  rm -rf "$TMP_REPO_LIB"
+fi
+
 ok "Config copiée depuis GitHub"
 ok "Fichiers : $(ls "$CLAUDE_DIR" | tr '\n' ' ')"
 [ -d "$CLAUDE_DIR/commands" ] && ok "Commands : $(ls "$CLAUDE_DIR/commands" | wc -l | tr -d ' ') fichiers"
 [ -d "$CLAUDE_DIR/skills" ]   && ok "Skills   : $(ls "$CLAUDE_DIR/skills" | wc -l | tr -d ' ') dossiers"
 [ -d "$CLAUDE_DIR/hooks" ]    && ok "Hooks    : $(ls "$CLAUDE_DIR/hooks" | wc -l | tr -d ' ') fichiers"
 
-# ── 6. MCP servers ────────────────────────────────────────────────────────────
+# Git init dans ClaudeBoost (utile pour Ruflo + tracking config)
+if [ ! -d "$INSTALL_ROOT/.git" ]; then
+  (cd "$INSTALL_ROOT" && git init --quiet 2>/dev/null) && ok "Git init dans $INSTALL_ROOT" || warn "Git init échoué"
+fi
+
+# ── 6. MCP servers + Ruflo config ─────────────────────────────────────────────
 sep
-echo "  [6/6]  MCP servers (context7 + playwright)..."
+echo "  [6/6]  MCP servers + Ruflo config..."
 
 claude mcp add context7  -- npx -y @upstash/context7-mcp  2>/dev/null && ok "MCP context7"  || warn "MCP context7 non ajouté (déjà présent ?)"
 claude mcp add playwright -- npx -y @playwright/mcp@latest 2>/dev/null && ok "MCP playwright" || warn "MCP playwright non ajouté (déjà présent ?)"
+claude mcp add ruflo      -- npx -y ruflo@latest mcp start 2>/dev/null && ok "MCP ruflo"      || warn "MCP ruflo non ajouté (déjà présent ?)"
+
+# Ruflo : config + memory backend
+info "Init Ruflo (claude-flow)..."
+(cd "$INSTALL_ROOT" && npx -y claude-flow config init --yes 2>/dev/null) && ok "Ruflo config init" || warn "Ruflo config init échoué (non bloquant)"
+(cd "$INSTALL_ROOT" && npx -y claude-flow memory configure --backend hybrid 2>/dev/null) && ok "Ruflo memory hybrid" || warn "Ruflo memory configure échoué (non bloquant)"
 
 # ── PATH permanent (idempotent) ───────────────────────────────────────────────
 USER_SHELL_NAME=$(basename "${SHELL:-/bin/zsh}")
