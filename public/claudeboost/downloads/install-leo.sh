@@ -8,13 +8,20 @@ export LANG="${LANG:-en_US.UTF-8}"
 xattr -d com.apple.quarantine "$0" 2>/dev/null || true
 
 # ── Config ────────────────────────────────────────────────────────────────────
-CLAUDE_DIR="$HOME/.claude"
+INSTALL_ROOT="$HOME/ClaudeBoost"
 NPM_GLOBAL="$HOME/.npm-global"
 LOG="$HOME/claude-boost-install.log"
 GITHUB_CONFIG="https://raw.githubusercontent.com/jaroussssss/siteProfils/main/public/claudeboost/config/leo"
 
-# Créer les dossiers critiques en tout premier
-mkdir -p "$CLAUDE_DIR/memory"
+# Créer ClaudeBoost en tout premier, puis symlinker ~/.claude → ~/ClaudeBoost
+mkdir -p "$INSTALL_ROOT/memory"
+if [ -L "$HOME/.claude" ]; then
+  rm "$HOME/.claude"
+elif [ -d "$HOME/.claude" ]; then
+  mv "$HOME/.claude" "$HOME/.claude.backup-$(date +%Y%m%d%H%M%S)"
+fi
+ln -s "$INSTALL_ROOT" "$HOME/.claude"
+CLAUDE_DIR="$INSTALL_ROOT"
 
 # ── Garde-fous ────────────────────────────────────────────────────────────────
 [[ "$(uname)" == "Darwin" ]] || { echo "Ce script est pour macOS uniquement."; exit 1; }
@@ -35,18 +42,7 @@ echo "  ║   Claude Code Boost — Profil Leo     ║"
 echo "  ╚══════════════════════════════════════╝"
 echo ""
 
-# ── Répertoire d'installation ─────────────────────────────────────────────────
-DEFAULT_INSTALL="$HOME/ClaudeBoost"
-echo "  Répertoire d'installation proposé :"
-echo "    $DEFAULT_INSTALL"
-echo ""
-printf "  Appuie sur Entrée pour accepter, ou tape un autre chemin : "
-read -r INSTALL_INPUT
-INSTALL_ROOT="${INSTALL_INPUT:-$DEFAULT_INSTALL}"
-INSTALL_ROOT="${INSTALL_ROOT/#\~/$HOME}"
-mkdir -p "$INSTALL_ROOT"
-echo ""
-ok "Répertoire d'installation : $INSTALL_ROOT"
+ok "Répertoire d'installation : $INSTALL_ROOT (symlink ← ~/.claude)"
 echo ""
 
 # ── 1. Xcode Command Line Tools ───────────────────────────────────────────────
