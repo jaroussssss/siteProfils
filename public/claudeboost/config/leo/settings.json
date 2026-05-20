@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status)", "Bash(git log *)", "Bash(git diff *)",
+      "Bash(node *)", "Bash(npm *)", "Bash(npx *)",
+      "Bash(ls *)", "Bash(cat *)", "Bash(echo *)",
+      "mcp__playwright__*", "mcp__context7__*"
+    ],
+    "deny": []
+  }
+}

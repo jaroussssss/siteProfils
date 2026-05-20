@@ -1,27 +1,26 @@
 #!/bin/bash
-# install-leo.sh — Claude Code Boost (Profil Leo) — macOS
-# Usage : bash ~/Downloads/install-leo.sh
-# Installe tout automatiquement : Homebrew, Node.js, Claude Code
+# Claude Code Boost — Profil Leo — macOS
+# Usage : curl -fsSL https://raw.githubusercontent.com/jaroussssss/siteProfils/main/public/claudeboost/downloads/install-leo.sh -o /tmp/install-leo.sh && bash /tmp/install-leo.sh
 
 set -uo pipefail
 export LANG="${LANG:-en_US.UTF-8}"
 
-# Retirer la quarantaine Gatekeeper si présente
 xattr -d com.apple.quarantine "$0" 2>/dev/null || true
+
+# ── Config ────────────────────────────────────────────────────────────────────
+CLAUDE_DIR="$HOME/.claude"
+NPM_GLOBAL="$HOME/.npm-global"
+LOG="$HOME/claude-boost-install.log"
+GITHUB_CONFIG="https://raw.githubusercontent.com/jaroussssss/siteProfils/main/public/claudeboost/config/leo"
+
+# Créer les dossiers critiques en tout premier
+mkdir -p "$CLAUDE_DIR/memory"
 
 # ── Garde-fous ────────────────────────────────────────────────────────────────
 [[ "$(uname)" == "Darwin" ]] || { echo "Ce script est pour macOS uniquement."; exit 1; }
 [[ $EUID -ne 0 ]]           || { echo "Ne lance pas ce script avec sudo."; exit 1; }
 [[ -t 0 ]]                  || { echo "Ne lance pas via 'curl | bash'. Télécharge le fichier d'abord."; exit 1; }
 
-CLAUDE_DIR="$HOME/.claude"
-NPM_GLOBAL="$HOME/.npm-global"
-LOG="$HOME/claude-boost-install.log"
-
-# Créer les dossiers critiques immédiatement (avant toute étape pouvant échouer)
-mkdir -p "$CLAUDE_DIR"
-
-# Tout logger dans un fichier pour debug
 exec > >(tee -a "$LOG") 2>&1
 echo "=== Démarrage $(date) ==="
 
@@ -43,15 +42,11 @@ echo "    $DEFAULT_INSTALL"
 echo ""
 printf "  Appuie sur Entrée pour accepter, ou tape un autre chemin : "
 read -r INSTALL_INPUT
-if [ -z "$INSTALL_INPUT" ]; then
-  INSTALL_ROOT="$DEFAULT_INSTALL"
-else
-  # Résoudre ~ manuellement si présent
-  INSTALL_ROOT="${INSTALL_INPUT/#\~/$HOME}"
-fi
+INSTALL_ROOT="${INSTALL_INPUT:-$DEFAULT_INSTALL}"
+INSTALL_ROOT="${INSTALL_ROOT/#\~/$HOME}"
+mkdir -p "$INSTALL_ROOT"
 echo ""
 ok "Répertoire d'installation : $INSTALL_ROOT"
-mkdir -p "$INSTALL_ROOT"
 echo ""
 
 # ── 1. Xcode Command Line Tools ───────────────────────────────────────────────
@@ -62,29 +57,14 @@ if ! xcode-select -p &>/dev/null; then
   echo "  Installation des outils système..."
   echo "  → Une fenêtre va s'ouvrir. Clique 'Installer' et attends."
   echo "  → Si tu vois 'Not available from Software Update server' :"
-  echo "     Option A : Va dans l'App Store et installe Xcode"
-  echo "     Option B : https://developer.apple.com/download/all/ → cherche 'Command Line Tools'"
-  echo "     Puis relance ce script."
+  echo "     Installe Xcode depuis l'App Store, puis relance ce script."
   echo ""
   xcode-select --install 2>/dev/null || true
-  echo ""
-  echo "  En attente de la fin de l'installation..."
   MAX_WAIT=1200; ELAPSED=0
   while ! xcode-select -p &>/dev/null; do
-    sleep 10
-    ELAPSED=$((ELAPSED + 10))
-    # Détecter si l'erreur "not available" s'est produite (déduction : rien après 30s)
-    if [ "$ELAPSED" -eq 30 ] && ! xcode-select -p &>/dev/null; then
-      echo ""
-      echo "  ⚠️  Si une erreur 'Can't install the software' est apparue :"
-      echo "     1. Ferme la popup"
-      echo "     2. Ouvre l'App Store → cherche 'Xcode' → Installer"
-      echo "     3. Ou va sur : https://developer.apple.com/download/all/"
-      echo "     4. Une fois installé, relance ce script"
-      echo ""
-      echo "  En attente (peut prendre jusqu'à 15 min depuis l'App Store)..."
-    fi
+    sleep 10; ELAPSED=$((ELAPSED + 10))
     printf "."
+    [ "$ELAPSED" -ge "$MAX_WAIT" ] && die "Outils non installés après 20 min. Relance le script."
   done
   echo ""
 fi
@@ -95,19 +75,18 @@ sep
 echo "  [2/5]  Homebrew..."
 
 if ! command -v brew &>/dev/null; then
-  echo "  Installation de Homebrew (peut prendre 2-5 min)..."
+  echo "  Installation de Homebrew (2-5 min)..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || \
-    die "Homebrew n'a pas pu s'installer. Vérifie ta connexion internet."
+    die "Homebrew n'a pas pu s'installer."
 fi
 
-# Activer brew dans la session courante selon l'architecture
-if [ -d /opt/homebrew/bin ]; then        # Apple Silicon (M1/M2/M3/M4)
+if [ -d /opt/homebrew/bin ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -f /usr/local/bin/brew ]; then    # Intel
+elif [ -f /usr/local/bin/brew ]; then
   eval "$(/usr/local/bin/brew shellenv)"
 fi
 
-command -v brew &>/dev/null || die "Homebrew installé mais introuvable dans le PATH."
+command -v brew &>/dev/null || die "Homebrew introuvable dans le PATH."
 ok "Homebrew $(brew --version | head -1 | awk '{print $2}')"
 
 # ── 3. Node.js ────────────────────────────────────────────────────────────────
@@ -117,10 +96,7 @@ echo "  [3/5]  Node.js..."
 NEEDS_NODE=false
 if command -v node &>/dev/null; then
   NODE_MAJOR=$(node -v | sed 's/v\([0-9]*\).*/\1/')
-  if [ "$NODE_MAJOR" -lt 18 ]; then
-    warn "Node.js $NODE_MAJOR trop ancien — mise à jour requise"
-    NEEDS_NODE=true
-  fi
+  [ "${NODE_MAJOR:-0}" -lt 18 ] && NEEDS_NODE=true
 else
   NEEDS_NODE=true
 fi
@@ -131,10 +107,9 @@ if [ "$NEEDS_NODE" = true ]; then
   brew link --overwrite node@20 2>/dev/null || true
 fi
 
-command -v node &>/dev/null || die "Node.js installé mais introuvable."
+command -v node &>/dev/null || die "Node.js introuvable."
 ok "Node.js $(node --version)"
 
-# Préfixe npm utilisateur (évite EACCES sur macOS)
 mkdir -p "$NPM_GLOBAL"
 npm config set prefix "$NPM_GLOBAL"
 export PATH="$NPM_GLOBAL/bin:$PATH"
@@ -145,87 +120,46 @@ echo "  [4/5]  Claude Code CLI..."
 
 if ! command -v claude &>/dev/null; then
   echo "  Installation (30-60 secondes)..."
-  npm install -g @anthropic-ai/claude-code || die "Échec de l'installation. Réessaie ou va sur https://claude.ai/code"
+  npm install -g @anthropic-ai/claude-code || die "Échec. Réessaie ou va sur https://claude.ai/code"
   hash -r 2>/dev/null || true
 fi
 
-command -v claude &>/dev/null || die "'claude' introuvable après installation. Ferme et rouvre le Terminal, puis retape : claude"
+command -v claude &>/dev/null || die "'claude' introuvable. Ferme et rouvre le Terminal, puis retape : claude"
 ok "Claude Code $(claude --version 2>/dev/null | head -1)"
 
-# ── 5. Configuration profil + PATH permanent ──────────────────────────────────
+# ── 5. Config Claude depuis GitHub ────────────────────────────────────────────
 sep
-echo "  [5/5]  Configuration..."
+echo "  [5/5]  Configuration (depuis GitHub)..."
 
-mkdir -p "$CLAUDE_DIR"
+pull_config() {
+  local remote="$1"
+  local local_path="$2"
+  if curl -fsSL "$remote" -o "$local_path" 2>/dev/null; then
+    ok "$(basename "$local_path")"
+  else
+    warn "Impossible de télécharger $(basename "$local_path") — conservé si existant"
+  fi
+}
 
-# Détecter le bon fichier de configuration shell
-# macOS utilise zsh par défaut depuis Catalina (2019)
-# Terminal.app ouvre des LOGIN shells → .zprofile pour PATH
+pull_config "$GITHUB_CONFIG/CLAUDE.md"              "$CLAUDE_DIR/CLAUDE.md"
+pull_config "$GITHUB_CONFIG/settings.json"          "$CLAUDE_DIR/settings.json"
+pull_config "$GITHUB_CONFIG/memory/MEMORY.md"       "$CLAUDE_DIR/memory/MEMORY.md"
+pull_config "$GITHUB_CONFIG/memory/user_leo.md"     "$CLAUDE_DIR/memory/user_leo.md"
+
+# PATH permanent
 USER_SHELL_NAME=$(basename "${SHELL:-/bin/zsh}")
 if [ "$USER_SHELL_NAME" = "zsh" ]; then
   SHELL_PROFILE="$HOME/.zprofile"
-  SHELL_RC="$HOME/.zshrc"
 else
   SHELL_PROFILE="$HOME/.bash_profile"
-  SHELL_RC="$HOME/.bash_profile"
 fi
-
-touch "$SHELL_PROFILE" "$SHELL_RC"
-
-# Ajouter npm global au PATH de façon permanente
-if ! grep -q "npm-global" "$SHELL_PROFILE" 2>/dev/null; then
-  { echo ""; echo "# Claude Boost — npm global"; echo "export PATH=\"$NPM_GLOBAL/bin:\$PATH\""; } >> "$SHELL_PROFILE"
-fi
-
-# Homebrew sur Apple Silicon (doit être dans .zprofile)
-if [ -d /opt/homebrew/bin ] && ! grep -q "opt/homebrew" "$SHELL_PROFILE" 2>/dev/null; then
+touch "$SHELL_PROFILE"
+grep -q "npm-global" "$SHELL_PROFILE" 2>/dev/null || \
+  { echo ""; echo "export PATH=\"$NPM_GLOBAL/bin:\$PATH\""; } >> "$SHELL_PROFILE"
+[ -d /opt/homebrew/bin ] && ! grep -q "opt/homebrew" "$SHELL_PROFILE" 2>/dev/null && \
   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$SHELL_PROFILE"
-fi
 
-# CLAUDE.md profil Leo
-cat > "$CLAUDE_DIR/CLAUDE.md" << 'CLAUDEEOF'
-# Profil Leo — Claude Code Boost
-
-## Comportement
-- Réponses courtes et directes
-- Code en anglais, messages en français
-- Toujours demander avant merge/push vers main
-- Jamais de token/secret affiché dans la réponse
-
-## Premiers pas
-Tape /help pour voir toutes les commandes disponibles.
-Tape /config pour configurer ta clé API.
-CLAUDEEOF
-
-# Permissions
-cat > "$CLAUDE_DIR/settings.json" << SETTINGSEOF
-{
-  "permissions": {
-    "allow": [
-      "Bash(git *)", "Bash(node *)", "Bash(npm *)",
-      "Bash(npx *)", "Bash(ls *)", "Bash(cat *)",
-      "mcp__playwright__*", "mcp__context7__*"
-    ],
-    "deny": []
-  },
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $INSTALL_ROOT/scripts/auto-update.sh",
-            "timeout": 10000
-          }
-        ]
-      }
-    ]
-  }
-}
-SETTINGSEOF
-
-ok "Profil Leo configuré"
-ok "PATH mis à jour dans $SHELL_PROFILE"
+ok "PATH configuré dans $SHELL_PROFILE"
 
 # ── Terminé ───────────────────────────────────────────────────────────────────
 echo ""
