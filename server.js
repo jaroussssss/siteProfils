@@ -162,11 +162,17 @@ if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET
     console.warn('ADMIN_URL_SECRET non configuré ou longueur ≠ 128: page admin désactivée');
 }
 
-// Route statique claudeboost avec CSP permissif
+// Route statique claudeboost — source externalisée dans claude-hub
+// Le contenu vit dans le repo github.com/jaroussssss/claude-hub (site/claudeboost/)
+// Sur le serveur, cloner le hub à côté de siteProfils :
+//   git clone https://github.com/jaroussssss/claude-hub.git ../claude-hub
+// Ou pointer ailleurs via env var CLAUDEBOOST_PATH
+const CLAUDEBOOST_PATH = process.env.CLAUDEBOOST_PATH
+  || path.join(__dirname, '..', 'claude-hub', 'site', 'claudeboost');
 app.use('/claudeboost', (req, res, next) => {
   res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' https: data: blob:");
   next();
-}, express.static(path.join(__dirname, 'public', 'claudeboost')));
+}, express.static(CLAUDEBOOST_PATH));
 
 // Route page chargement via lien temporaire (/:link) avec vérification du lien
 app.get('/:link', simpleRateLimit(20), validateLink, async (req, res) => {
