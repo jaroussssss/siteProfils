@@ -3,6 +3,13 @@ name: Deploy → main
 on:
   push:
     branches: [main]
+  # Cron : pull claude-hub toutes les 5 min (auto-deploy passif quand claude-hub
+  # est push sans toucher siteProfils). Contourne les blocages LiteSpeed sur les
+  # webhooks N0C en passant par GitHub Actions runners.
+  schedule:
+    - cron: '*/5 * * * *'
+  # Trigger manuel disponible dans l'UI GitHub Actions
+  workflow_dispatch:
 
 jobs:
   deploy:
