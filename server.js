@@ -162,11 +162,53 @@ if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET
     console.warn('ADMIN_URL_SECRET non configuré ou longueur ≠ 128: page admin désactivée');
 }
 
-// La route /claudeboost est servie par une app Node Passenger AUTONOME :
-//   Repo  : github.com/jaroussssss/claude-hub
-//   Path  : ~/claude-hub/site/claudeboost/server.js
-//   URL   : tempcestlouisquirac.fr/claudeboost (gere par cPanel N0C)
-// siteProfils n'a aucune responsabilite sur /claudeboost.
+// =============================================================================
+// /claudeboost — sert le site (contenu dans claude-hub)
+// =============================================================================
+import crypto from 'crypto';
+import { exec } from 'child_process';
+
+const CLAUDEBOOST_PATH = process.env.CLAUDEBOOST_PATH
+  || path.join(__dirname, '..', 'claude-hub', 'site', 'claudeboost');
+const HUB_ROOT = process.env.CLAUDE_HUB_PATH
+  || path.join(__dirname, '..', 'claude-hub');
+const HUB_WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
+
+// Webhook auto-pull claude-hub. URL sans underscore prefix pour eviter
+// les 403 LiteSpeed parfois trop zeles sur les paths "techniques".
+app.post('/api/sync-claude-hub',
+  express.raw({ type: 'application/json', limit: '5mb' }),
+  (req, res) => {
+    if (!HUB_WEBHOOK_SECRET) return res.status(503).send('disabled');
+    const sig = req.headers['x-hub-signature-256'];
+    if (!sig) return res.status(401).send('no sig');
+    const hmac = crypto.createHmac('sha256', HUB_WEBHOOK_SECRET);
+    hmac.update(req.body);
+    const expected = 'sha256=' + hmac.digest('hex');
+    const a = Buffer.from(sig);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+      return res.status(401).send('bad sig');
+    }
+    const event = req.headers['x-github-event'];
+    if (event === 'ping') return res.status(200).send('pong');
+    if (event !== 'push') return res.status(200).send('ignored');
+    exec('git pull --ff-only origin main', { cwd: HUB_ROOT, timeout: 30000 }, (err, stdout, stderr) => {
+      if (err) {
+        console.error('[hub-sync] KO:', stderr || err.message);
+        return res.status(500).send('pull failed');
+      }
+      console.log('[hub-sync] OK:', stdout.trim());
+      res.status(200).send('deployed');
+    });
+  }
+);
+
+// Static claudeboost depuis claude-hub (source de verite)
+app.use('/claudeboost', (req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' https: data: blob:");
+  next();
+}, express.static(CLAUDEBOOST_PATH, { extensions: ['html'], index: 'index.html' }));
 
 // Route page chargement via lien temporaire (/:link) avec vérification du lien
 app.get('/:link', simpleRateLimit(20), validateLink, async (req, res) => {
