@@ -162,17 +162,11 @@ if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET
     console.warn('ADMIN_URL_SECRET non configuré ou longueur ≠ 128: page admin désactivée');
 }
 
-// Route statique claudeboost — source externalisée dans claude-hub
-// Le contenu vit dans le repo github.com/jaroussssss/claude-hub (site/claudeboost/)
-// Sur le serveur, cloner le hub à côté de siteProfils :
-//   git clone https://github.com/jaroussssss/claude-hub.git ../claude-hub
-// Ou pointer ailleurs via env var CLAUDEBOOST_PATH
-const CLAUDEBOOST_PATH = process.env.CLAUDEBOOST_PATH
-  || path.join(__dirname, '..', 'claude-hub', 'site', 'claudeboost');
-app.use('/claudeboost', (req, res, next) => {
-  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' https: data: blob:");
-  next();
-}, express.static(CLAUDEBOOST_PATH));
+// La route /claudeboost a ete deplacee dans une app Node autonome :
+//   Repo  : github.com/jaroussssss/claude-hub
+//   Path  : claude-hub/site/claudeboost/ (avec son propre server.js)
+//   cPanel: app Node N0C dediee, Application URL = "claudeboost"
+// siteProfils n'a plus aucune responsabilite sur claudeboost.
 
 // Route page chargement via lien temporaire (/:link) avec vérification du lien
 app.get('/:link', simpleRateLimit(20), validateLink, async (req, res) => {
