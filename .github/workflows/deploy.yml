@@ -77,6 +77,21 @@ jobs:
             mkdir -p tmp && touch tmp/restart.txt
 
             # ============================================================
+            # 4b. Sync vers l'app LEGACY ~/ClaudeBoost (toujours active en cPanel)
+            # ============================================================
+            # L'utilisateur a une app Passenger historique a ~/ClaudeBoost qui sert
+            # les fichiers de ~/ClaudeBoost/public/. On y miroitt le contenu du
+            # nouveau site pour que /claudeboost/ marche tant qu'on n'a pas migre
+            # cPanel vers la nouvelle app autonome.
+            if [ -d ~/ClaudeBoost ]; then
+              mkdir -p ~/ClaudeBoost/public/assets ~/ClaudeBoost/public/downloads ~/ClaudeBoost/tmp
+              # Copie tous les HTMLs, les assets et le 404 du nouveau site
+              cp ~/claude-hub/site/claudeboost/*.html ~/ClaudeBoost/public/ 2>/dev/null || true
+              cp -r ~/claude-hub/site/claudeboost/assets/* ~/ClaudeBoost/public/assets/ 2>/dev/null || true
+              touch ~/ClaudeBoost/tmp/restart.txt
+            fi
+
+            # ============================================================
             # 5. Restart Passenger SiteProfils
             # ============================================================
             cd ~/SiteProfils
