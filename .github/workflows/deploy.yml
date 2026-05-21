@@ -60,8 +60,26 @@ jobs:
             fi
 
             # ============================================================
-            # 4. Restart Passenger
+            # 4. claude-hub claudeboost app — npm install + restart
             # ============================================================
+            cd ~/claude-hub/site/claudeboost
+            if [ -f package.json ]; then
+              npm install --omit=dev --silent 2>/dev/null || true
+            fi
+            # Set WEBHOOK_SECRET dans .env de l'app claudeboost (idempotent)
+            if [ -n "$WEBHOOK_SECRET" ]; then
+              if grep -q '^WEBHOOK_SECRET=' .env 2>/dev/null; then
+                sed -i "s|^WEBHOOK_SECRET=.*|WEBHOOK_SECRET=$WEBHOOK_SECRET|" .env
+              else
+                echo "WEBHOOK_SECRET=$WEBHOOK_SECRET" >> .env
+              fi
+            fi
+            mkdir -p tmp && touch tmp/restart.txt
+
+            # ============================================================
+            # 5. Restart Passenger SiteProfils
+            # ============================================================
+            cd ~/SiteProfils
             mkdir -p tmp && touch tmp/restart.txt
             echo "Deploy OK $(date -u +%Y-%m-%dT%H:%M:%SZ)"
         env:
