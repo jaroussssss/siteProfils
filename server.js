@@ -162,11 +162,60 @@ if (ADMIN_URL_SECRET && typeof ADMIN_URL_SECRET === 'string' && ADMIN_URL_SECRET
     console.warn('ADMIN_URL_SECRET non configuré ou longueur ≠ 128: page admin désactivée');
 }
 
-// La route /claudeboost a ete deplacee dans une app Node autonome :
-//   Repo  : github.com/jaroussssss/claude-hub
-//   Path  : claude-hub/site/claudeboost/ (avec son propre server.js)
-//   cPanel: app Node N0C dediee, Application URL = "claudeboost"
-// siteProfils n'a plus aucune responsabilite sur claudeboost.
+// =============================================================================
+// claudeboost — source dans claude-hub, sert depuis siteProfils
+// =============================================================================
+// Contenu : github.com/jaroussssss/claude-hub (site/claudeboost/)
+// Sur le serveur : git clone next to siteProfils, path env CLAUDEBOOST_PATH ou default
+// Webhook auto-pull sur /_webhook/claude-hub-deploy (HMAC SHA-256)
+import crypto from 'crypto';
+import { exec } from 'child_process';
+
+const CLAUDEBOOST_PATH = process.env.CLAUDEBOOST_PATH
+  || path.join(__dirname, '..', 'claude-hub', 'site', 'claudeboost');
+const HUB_ROOT = process.env.CLAUDE_HUB_PATH
+  || path.join(__dirname, '..', 'claude-hub');
+const CLAUDEBOOST_WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
+
+// Webhook GitHub auto-pull du hub. DOIT etre AVANT express.static.
+app.post('/_webhook/claude-hub-deploy',
+  express.raw({ type: 'application/json', limit: '5mb' }),
+  (req, res) => {
+    if (!CLAUDEBOOST_WEBHOOK_SECRET) {
+      return res.status(503).send('Webhook desactive : WEBHOOK_SECRET manquant.');
+    }
+    const sig = req.headers['x-hub-signature-256'];
+    if (!sig) return res.status(401).send('Signature manquante.');
+    const hmac = crypto.createHmac('sha256', CLAUDEBOOST_WEBHOOK_SECRET);
+    hmac.update(req.body);
+    const expected = 'sha256=' + hmac.digest('hex');
+    const sigBuf = Buffer.from(sig);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+      return res.status(401).send('Signature invalide.');
+    }
+    const event = req.headers['x-github-event'];
+    if (event === 'ping') return res.status(200).send('pong');
+    if (event !== 'push') return res.status(200).send('Ignored event: ' + event);
+
+    exec('git pull --ff-only origin main', { cwd: HUB_ROOT, timeout: 30000 }, (err, stdout, stderr) => {
+      if (err) {
+        console.error('[claudeboost webhook] git pull KO:', stderr || err.message);
+        return res.status(500).send('git pull failed.');
+      }
+      console.log('[claudeboost webhook] git pull OK:', stdout.trim());
+      // Pas besoin de restart Passenger : siteProfils sert juste les fichiers static
+      // qui sont relus a la volee par express.static.
+      res.status(200).send('Deployed.');
+    });
+  }
+);
+
+// Route statique claudeboost (contenu dans claude-hub)
+app.use('/claudeboost', (req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' https: data: blob:");
+  next();
+}, express.static(CLAUDEBOOST_PATH, { extensions: ['html'], index: 'index.html' }));
 
 // Route page chargement via lien temporaire (/:link) avec vérification du lien
 app.get('/:link', simpleRateLimit(20), validateLink, async (req, res) => {
