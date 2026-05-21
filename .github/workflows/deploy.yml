@@ -15,11 +15,15 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
-          envs: GH_PAT
+          envs: GH_PAT,WEBHOOK_SECRET
           script: |
             set -e
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+            # ============================================================
+            # 1. SiteProfils — main Passenger app
+            # ============================================================
             REPO_URL="https://$GH_PAT@github.com/jaroussssss/siteProfils.git"
             if [ ! -d ~/SiteProfils ]; then
               git clone "$REPO_URL" ~/SiteProfils
@@ -29,11 +33,37 @@ jobs:
             git fetch "$REPO_URL" main
             git reset --hard FETCH_HEAD
             npm ci --omit=dev --silent 2>/dev/null || true
+
+            # ============================================================
+            # 2. claude-hub — sibling repo (source claudeboost + skills + hub)
+            # ============================================================
+            HUB_URL="https://$GH_PAT@github.com/jaroussssss/claude-hub.git"
+            if [ ! -d ~/claude-hub ]; then
+              git clone "$HUB_URL" ~/claude-hub
+            else
+              cd ~/claude-hub
+              rm -f .git/index.lock .git/FETCH_HEAD.lock 2>/dev/null || true
+              git fetch "$HUB_URL" main
+              git reset --hard FETCH_HEAD
+            fi
+
+            # ============================================================
+            # 3. SiteProfils .env — WEBHOOK_SECRET pour le webhook claude-hub
+            # ============================================================
+            cd ~/SiteProfils
+            if [ -n "$WEBHOOK_SECRET" ]; then
+              if grep -q '^WEBHOOK_SECRET=' .env 2>/dev/null; then
+                sed -i "s|^WEBHOOK_SECRET=.*|WEBHOOK_SECRET=$WEBHOOK_SECRET|" .env
+              else
+                echo "WEBHOOK_SECRET=$WEBHOOK_SECRET" >> .env
+              fi
+            fi
+
+            # ============================================================
+            # 4. Restart Passenger
+            # ============================================================
             mkdir -p tmp && touch tmp/restart.txt
-            mkdir -p ~/ClaudeBoost/public/downloads
-            cp ~/SiteProfils/public/claudeboost/*.html ~/ClaudeBoost/public/ 2>/dev/null || true
-            cp ~/SiteProfils/public/claudeboost/downloads/* ~/ClaudeBoost/public/downloads/ 2>/dev/null || true
-            touch ~/ClaudeBoost/tmp/restart.txt
-            echo "Deploy OK $(date)"
+            echo "Deploy OK $(date -u +%Y-%m-%dT%H:%M:%SZ)"
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
