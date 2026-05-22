@@ -83,8 +83,32 @@ jobs:
             fi
             mkdir -p tmp && touch tmp/restart.txt
 
-            # Pas de miroir vers l'app legacy ~/ClaudeBoost : la nouvelle app
-            # claude-hub/site/claudeboost/ se suffit a elle-meme (server.js + static).
+            # ============================================================
+            # 4b. Mirror vers le path statique servi par LiteSpeed
+            # ============================================================
+            # LiteSpeed/cPanel sert /claudeboost/ depuis un dossier static (pas
+            # via Express). On detecte le bon path et on y miroitt le contenu.
+            # Candidats classiques cPanel/N0C :
+            HUB_SRC=~/claude-hub/site/claudeboost
+            CANDIDATES=(
+              ~/public_html/claudeboost
+              ~/public_html/tempcestlouisquirac.fr/claudeboost
+              ~/tempcestlouisquirac.fr/claudeboost
+              ~/www/claudeboost
+              ~/public/claudeboost
+              ~/ClaudeBoost/public
+            )
+            for DEST in "${CANDIDATES[@]}"; do
+              PARENT=$(dirname "$DEST")
+              # On copie uniquement si le PARENT existe deja (= path reel cPanel)
+              if [ -d "$PARENT" ]; then
+                mkdir -p "$DEST/assets"
+                cp -f "$HUB_SRC"/*.html "$DEST/" 2>/dev/null || true
+                cp -rf "$HUB_SRC"/assets/* "$DEST/assets/" 2>/dev/null || true
+                cp -f "$HUB_SRC"/README.md "$DEST/" 2>/dev/null || true
+                echo "Mirror -> $DEST OK ($(ls "$DEST" | wc -l) entries)"
+              fi
+            done
 
             # ============================================================
             # 5. Restart Passenger SiteProfils
